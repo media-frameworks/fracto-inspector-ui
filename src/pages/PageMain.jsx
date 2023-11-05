@@ -6,10 +6,6 @@ import AppPageMain from 'common/app/AppPageMain';
 import {CoolStyles, CoolTabs} from 'common/ui/CoolImports';
 import {DEFAULT_HOLODECK} from "common/threed/holodeck/HolodeckController";
 
-import FractoCommon from "fracto/common/FractoCommon";
-import FractoDataLoader from "fracto/common/data/FractoDataLoader";
-import FractoData, {BIN_VERB_COMPLETED, BIN_VERB_INDEXED} from "fracto/common/data/FractoData";
-
 import InspectorDetails from "./Inspector/InspectorDetails"
 import InspectorStrata from "./Inspector/InspectorStrata"
 import InspectorBailiwicks from "./Inspector/InspectorBailiwicks"
@@ -19,6 +15,7 @@ import InspectorRaster from "./Inspector/InspectorRaster";
 import Inspector3D from "./Inspector/Inspector3D";
 
 const INSPECTOR_PADDING_PX = 10
+const CONTROLS_STORAGE_KEY = 'HOLODECK_CONTROLS'
 
 const STORAGE_FOCAL_POINT_KEY = "inspector_focal_point"
 const STORAGE_SCOPE_KEY = "inspector_scope"
@@ -59,23 +56,27 @@ export class PageMain extends Component {
    state = {
       left_width: 0,
       right_width: 0,
-      indexed_loading: true,
-      completed_loading: true,
+      // indexed_loading: true,
+      // completed_loading: true,
       focal_point: {x: -0.75, y: 0.25},
       scope: 2.5,
       inspector_ready: true,
       hover_point: {x: 0, y: 0},
       in_hover: false,
       tab_index: 0,
-      options: {
-         holodeck_controls: DEFAULT_HOLODECK
-      },
+      options: {},
       update_counter: 0
    };
 
    static inspector_ref = React.createRef()
 
    componentDidMount() {
+      const {options} = this.state
+
+      const controls = localStorage.getItem(CONTROLS_STORAGE_KEY)
+      options.holodeck_controls = controls ? JSON.parse(controls) : DEFAULT_HOLODECK
+      // options.holodeck_controls =  DEFAULT_HOLODECK
+      this.setState({options: options})
 
       const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
       if (recent_focal_point) {
@@ -85,23 +86,10 @@ export class PageMain extends Component {
       if (recent_scope) {
          this.setState({scope: parseFloat(recent_scope)})
       }
-      FractoDataLoader.load_tile_set_async(BIN_VERB_INDEXED, result => {
-         console.log("FractoDataLoader.load_tile_set_async", BIN_VERB_INDEXED, result)
-         for (let level = 3; level <= 34; level++) {
-            FractoData.get_cached_tiles(level, BIN_VERB_INDEXED)
-         }
-         this.setState({indexed_loading: false});
-      });
-      FractoDataLoader.load_tile_set_async(BIN_VERB_COMPLETED, result => {
-         console.log("FractoDataLoader.load_tile_set_async", BIN_VERB_COMPLETED, result)
-         for (let level = 3; level <= 34; level++) {
-            FractoData.get_cached_tiles(level, BIN_VERB_COMPLETED)
-         }
-         this.setState({completed_loading: false});
-      });
    }
 
    on_resize = (left_width, right_width) => {
+      console.log("on_resize", left_width, right_width)
       this.setState({
          left_width: left_width,
          right_width: right_width
@@ -138,6 +126,9 @@ export class PageMain extends Component {
       }
       let new_options = JSON.parse(JSON.stringify(options))
       new_options.holodeck_controls = JSON.parse(JSON.stringify(controls))
+      localStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify(controls))
+      console.log("new_options", new_options)
+
       this.setState({
          options: new_options,
          update_counter: update_counter + 1,
@@ -195,6 +186,7 @@ export class PageMain extends Component {
                width_px={details_width_px}
                options={options}
                set_options={options => this.on_options_changed(options)}
+               on_update_controls={this.on_controls_change}
                // set_options={options => console.log("options", options)}
             />
             break;
@@ -252,13 +244,10 @@ export class PageMain extends Component {
 
    render() {
       const {
-         left_width, right_width, indexed_loading, completed_loading, focal_point,
+         left_width, right_width, focal_point,
          hover_point, scope, in_hover
       } = this.state;
       const {app_name} = this.props;
-      if (indexed_loading || completed_loading) {
-         return FractoCommon.loading_wait_notice()
-      }
       const left_side = <InspectorStrata
          width_px={left_width}
          focal_point={focal_point}
@@ -269,7 +258,7 @@ export class PageMain extends Component {
       const canvas_size_px = this.get_canvas_size_px()
       const details_width_px = right_width - canvas_size_px - INSPECTOR_PADDING_PX * 3 - 10
       const inspector_tabs = this.render_tabs(details_width_px - INSPECTOR_PADDING_PX * 2)
-      const details_style = {maxWidth: `${details_width_px}px`}
+      const details_style = {width: `${details_width_px}px`}
       const right_side = [
          this.render_inspection(right_width),
          <CoolStyles.InlineBlock

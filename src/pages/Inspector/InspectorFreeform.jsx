@@ -17,6 +17,7 @@ export class InspectorFreeform extends Component {
       width_px: PropTypes.number.isRequired,
       options: PropTypes.object.isRequired,
       set_options: PropTypes.func.isRequired,
+      on_update_controls: PropTypes.func.isRequired,
    }
 
    state = {}
@@ -48,10 +49,11 @@ export class InspectorFreeform extends Component {
    }
 
    update_controls = (holodeck_controls) => {
-      const {options, set_options} = this.props
+      const {options, set_options, on_update_controls} = this.props
       let new_options = JSON.parse(JSON.stringify(options))
       new_options.holodeck_controls = holodeck_controls
       set_options(new_options)
+      on_update_controls(holodeck_controls)
    }
 
    render() {

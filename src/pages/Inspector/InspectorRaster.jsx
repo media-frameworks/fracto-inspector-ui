@@ -5,7 +5,7 @@ import styled from "styled-components";
 import {CoolStyles} from "common/ui/CoolImports";
 
 import {get_ideal_level} from "fracto/common/data/FractoData";
-import FractoRasterCanvas from "fracto/common/render/FractoRasterCanvas";
+import FractoIncrementalRender from "fracto/common/render/FractoIncrementalRender";
 
 import BailiwickData from "fracto/common/data/BailiwickData";
 import {OPTION_SHOW_BAILIWICKS} from "../PageMain";
@@ -14,7 +14,6 @@ const INSPECTOR_PADDING_PX = 10
 
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
    height: 99%;
-   background-color: white;
 `;
 
 export class InspectorRaster extends Component {
@@ -143,7 +142,7 @@ export class InspectorRaster extends Component {
          onClick={this.on_click}
          onMouseMove={this.on_mousemove}
          onMouseLeave={this.on_mouseleave}>
-         <FractoRasterCanvas
+         <FractoIncrementalRender
             key={'inspection_raster'}
             width_px={canvas_size_px}
             scope={scope}

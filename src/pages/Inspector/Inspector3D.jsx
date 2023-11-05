@@ -11,6 +11,8 @@ import FractoData, {get_ideal_level} from "fracto/common/data/FractoData";
 import FractoMruCache, {TILE_CACHE} from "fracto/common/data/FractoMruCache";
 import FractoUtil from "fracto/common/FractoUtil";
 
+const GRID_FACTOR = 2
+
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
    ${CoolStyles.narrow_box_shadow}
    background-color: white;
@@ -83,6 +85,15 @@ export class Inspector3D extends Component {
 
    on_render_pixel = (x, y, img_x, img_y, ctx) => {
       const {all_tiles, local_cache} = this.state
+      if (isNaN(x) || isNaN(y)) {
+         return;
+      }
+      let on_grid = false
+      if (((Math.abs(x) * 100) % 10) < 0.25) {
+         on_grid = true
+      } else if (((Math.abs(y)* 100) % 10) < 0.25) {
+         on_grid = true
+      }
 
       let completed = false
       for (let i = 0; i < all_tiles.length && !completed; i++) {
@@ -110,14 +121,15 @@ export class Inspector3D extends Component {
             continue;
          }
          if (!local_cache[tile.short_code]) {
-            local_cache[tile.short_code] = JSON.parse(TILE_CACHE[tile.short_code])
+            local_cache[tile.short_code] = TILE_CACHE[tile.short_code]
             // console.log("local_cache[tile.short_code]", tile.short_code, local_cache[tile.short_code])
          }
          const point_data = local_cache[tile.short_code]
          const tile_x = Math.floor(255 * (x - tile.bounds.left) * one_by_tile_width);
          const tile_y = Math.floor(255 * (tile.bounds.top - Math.abs(y)) * one_by_tile_width);
          const [pattern, iterations] = point_data[tile_x][tile_y];
-         const [hue, sat_pct, lum_pct] = FractoUtil.fracto_pattern_color_hsl(pattern, iterations)
+         const with_grid = !pattern && on_grid ? iterations * GRID_FACTOR : iterations
+         const [hue, sat_pct, lum_pct] = FractoUtil.fracto_pattern_color_hsl(pattern, with_grid)
          ctx.fillStyle = `hsl(${hue}, ${sat_pct}%, ${lum_pct}%)`
          ctx.fillRect(img_x, img_y, 1, 1);
          completed = true;
@@ -125,10 +137,11 @@ export class Inspector3D extends Component {
       if (!completed) {
          const distance = Math.sqrt(x * x + y * y)
          if (distance > 2) {
-            const [hue, sat_pct, lum_pct] = FractoUtil.fracto_pattern_color_hsl(0, 4 + (distance - 2) * (distance - 2) * 25)
+            const iterations = 4 + (distance - 2) * (distance - 2) * 25
+            const [hue, sat_pct, lum_pct] = FractoUtil.fracto_pattern_color_hsl(0, on_grid ? iterations * GRID_FACTOR : iterations)
             ctx.fillStyle = `hsl(${hue}, ${sat_pct}%, ${lum_pct}%)`
          } else {
-            const [hue, sat_pct, lum_pct] = FractoUtil.fracto_pattern_color_hsl(0, 4)
+            const [hue, sat_pct, lum_pct] = FractoUtil.fracto_pattern_color_hsl(0, on_grid ? 4 * GRID_FACTOR : 4)
             ctx.fillStyle = `hsl(${hue}, ${sat_pct}%, ${lum_pct}%)`
          }
          ctx.fillRect(img_x, img_y, 1, 1);

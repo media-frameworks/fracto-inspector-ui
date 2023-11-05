@@ -92,10 +92,10 @@ export class InspectorDetails extends Component {
          {label: "coverage", render: this.render_tiles},
          {label: "cursor", render: this.render_cursor},
       ].map(detail => {
-         const data_width_px = width_px - LABEL_WIDTH_PX - 250
+         const data_width_px = width_px - LABEL_WIDTH_PX - 100
          return <DetailRow>
             <DetailLabel>{detail.label}</DetailLabel>
-            <DetailData style={{maxWidth: `${data_width_px}px`}}>{detail.render()}</DetailData>
+            <DetailData style={{width: `${data_width_px}px`}}>{detail.render()}</DetailData>
          </DetailRow>
       })
    }
