@@ -6,13 +6,14 @@ import AppPageMain from 'common/app/AppPageMain';
 import {CoolStyles, CoolTabs} from 'common/ui/CoolImports';
 import {DEFAULT_HOLODECK} from "common/threed/holodeck/HolodeckController";
 
-import InspectorDetails from "./Inspector/InspectorDetails"
+import FractoRenderDetails from "../fracto/common/render/FractoRenderDetails"
 import InspectorStrata from "./Inspector/InspectorStrata"
 import InspectorBailiwicks from "./Inspector/InspectorBailiwicks"
 import InspectorBurrows from "./Inspector/InspectorBurrows"
 import InspectorFreeform from "./Inspector/InspectorFreeform"
 import InspectorRaster from "./Inspector/InspectorRaster";
 import Inspector3D from "./Inspector/Inspector3D";
+import FractoOrbitalsList from "../fracto/common/render/FractoOrbitalsList";
 
 const INSPECTOR_PADDING_PX = 10
 const CONTROLS_STORAGE_KEY = 'HOLODECK_CONTROLS'
@@ -23,10 +24,12 @@ const STORAGE_SCOPE_KEY = "inspector_scope"
 const TAB_LABEL_FREEFORM = "freeform"
 const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_BUTRROWS = "burrows";
+const TAB_LABEL_ORBITALS = "orbitals";
 const TABS_LIST = [
    TAB_LABEL_FREEFORM,
    TAB_LABEL_BAILIWICKS,
    TAB_LABEL_BUTRROWS,
+   TAB_LABEL_ORBITALS
 ]
 export const OPTION_SHOW_BAILIWICKS = "show_bailiwicks"
 export const OPTION_VIEW_3D = "view_3d"
@@ -56,8 +59,6 @@ export class PageMain extends Component {
    state = {
       left_width: 0,
       right_width: 0,
-      // indexed_loading: true,
-      // completed_loading: true,
       focal_point: {x: -0.75, y: 0.25},
       scope: 2.5,
       inspector_ready: true,
@@ -65,7 +66,8 @@ export class PageMain extends Component {
       in_hover: false,
       tab_index: 0,
       options: {},
-      update_counter: 0
+      update_counter: 0,
+      canvas_buffer: []
    };
 
    static inspector_ref = React.createRef()
@@ -136,6 +138,15 @@ export class PageMain extends Component {
       })
    }
 
+   on_plan_complete = (canvas_buffer) => {
+      const {update_counter} = this.state
+      this.setState({
+         canvas_buffer: canvas_buffer,
+         inspector_ready: true,
+         update_counter: update_counter + 1
+      })
+   }
+
    render_inspection = (width_px) => {
       const {focal_point, scope, options, update_counter} = this.state
       const canvas_size_px = this.get_canvas_size_px()
@@ -149,6 +160,7 @@ export class PageMain extends Component {
                options={options}
                on_focal_point_change={focal_point => this.setState({focal_point: focal_point})}
                on_hover={location => this.on_hover(location)}
+               on_plan_complete={this.on_plan_complete}
             />
          </InspectorWrapper>
       } else {
@@ -178,7 +190,7 @@ export class PageMain extends Component {
    }
 
    render_tabs = (details_width_px) => {
-      const {tab_index, options} = this.state
+      const {tab_index, options, canvas_buffer, update_counter} = this.state
       let content = `you have selected ${tab_index}`
       switch (tab_index) {
          case 0:
@@ -202,6 +214,13 @@ export class PageMain extends Component {
                width_px={details_width_px}
                on_focal_point_changed={focal_point => this.set_focal_point(focal_point)}
                on_scope_changed={scope => this.set_scope(scope)}
+            />
+            break;
+         case 3:
+            content = <FractoOrbitalsList
+               width_px={details_width_px}
+               canvas_buffer={canvas_buffer}
+               update_counter={update_counter}
             />
             break;
          default:
@@ -264,7 +283,7 @@ export class PageMain extends Component {
          <CoolStyles.InlineBlock
             style={details_style}>
             <DetailsWrapper>
-               <InspectorDetails
+               <FractoRenderDetails
                   width_px={details_width_px}
                   focal_point={focal_point}
                   scope={scope}

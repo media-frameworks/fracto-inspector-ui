@@ -24,12 +24,14 @@ export class InspectorRaster extends Component {
       focal_point: PropTypes.object.isRequired,
       scope: PropTypes.number.isRequired,
       on_focal_point_change: PropTypes.func.isRequired,
+      on_plan_complete: PropTypes.func.isRequired,
       on_hover: PropTypes.func.isRequired
    }
 
    state = {
       inspector_ready: false,
       all_bailiwicks: [],
+      canvas_buffer: []
    };
 
    static inspector_ref = React.createRef()
@@ -103,6 +105,14 @@ export class InspectorRaster extends Component {
       })
    }
 
+   on_plan_complete = (canvas_buffer) => {
+      const {on_plan_complete} =this.props
+      this.setState({
+         inspector_ready: true,
+      })
+      on_plan_complete(canvas_buffer)
+   }
+
    render() {
       const {all_bailiwicks} = this.state
       const {focal_point, scope, options} = this.props
@@ -148,7 +158,7 @@ export class InspectorRaster extends Component {
             scope={scope}
             focal_point={focal_point}
             level={ideal_level}
-            on_plan_complete={ref => this.setState({inspector_ready: true})}
+            on_plan_complete={this.on_plan_complete}
             highlight_points={highlight_points}
          />
       </InspectorWrapper>
