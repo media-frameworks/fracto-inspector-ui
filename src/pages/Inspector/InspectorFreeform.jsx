@@ -57,7 +57,7 @@ export class InspectorFreeform extends Component {
    }
 
    render() {
-      const {options} = this.props
+      const {options } = this.props
       const show_bailiwicks_link = <CoolStyles.LinkSpan
          onClick={this.toggle_show_bailiwicks}>
          {`${options[OPTION_SHOW_BAILIWICKS] ? 'hide' : 'show'} bailiwicks`}
@@ -71,9 +71,18 @@ export class InspectorFreeform extends Component {
          on_update={this.update_controls}
       />
       return <ContentWrapper>
-         <CoolStyles.Block>{show_bailiwicks_link}</CoolStyles.Block>
-         <CoolStyles.Block>{view_3d_link}</CoolStyles.Block>
-         <CoolStyles.Block>{holodeck_controls}</CoolStyles.Block>
+         <CoolStyles.Block>
+            <CoolStyles.InlineBlock>
+               {show_bailiwicks_link}
+               {`, `}
+            </CoolStyles.InlineBlock>
+            <CoolStyles.InlineBlock>
+               {view_3d_link}
+            </CoolStyles.InlineBlock>
+         </CoolStyles.Block>
+         <CoolStyles.Block>
+            {holodeck_controls}
+         </CoolStyles.Block>
       </ContentWrapper>
    }
 }

@@ -2,11 +2,13 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styled from "styled-components";
 
-import {CoolStyles, CoolSelect, CoolTable, CoolColors} from "common/ui/CoolImports";
+import {CoolStyles, CoolTable} from "common/ui/CoolImports";
+import {render_pattern_block} from "fracto/common/FractoStyles";
 import BailiwickData from "fracto/common/data/BailiwickData";
+import BailiwickList from "fracto/common/render/BailiwickList";
+import BailiwickDetails from "fracto/common/render/BailiwickDetails";
 import {
-   CELL_ALIGN_CENTER,
-   CELL_TYPE_NUMBER,
+   CELL_ALIGN_CENTER, CELL_TYPE_CALLBACK,
    CELL_TYPE_TEXT
 } from "common/ui/CoolTable";
 import {TABLE_CAN_SELECT} from "common/ui/CoolTable"
@@ -15,53 +17,46 @@ const SELECTED_BAILIWICK_KEY = "selected_bailiwick";
 
 const NODES_HEADERS = [
    {
-      id: "name",
-      label: "name",
-      type: CELL_TYPE_TEXT,
-      width_px: 250
-   },
-   {
       id: "pattern",
       label: "pattern",
-      type: CELL_TYPE_NUMBER,
+      type: CELL_TYPE_CALLBACK,
       width_px: 50,
       align: CELL_ALIGN_CENTER
    },
    {
       id: "short_form",
-      label: "short form",
+      label: "short",
       type: CELL_TYPE_TEXT,
-      width_px: 120
+      width_px: 80
+   },
+   {
+      id: "long_form",
+      label: "long",
+      type: CELL_TYPE_TEXT,
+      width_px: 220
    },
 ]
 
 const ContentWrapper = styled(CoolStyles.Block)`
    padding: 0.5rem;
    background-color: white;
+   overflow-x: scroll;
 `
 
 const SelectWrapper = styled(CoolStyles.InlineBlock)`
+   ${CoolStyles.light_border}
    margin: 0;
-`
-
-const LinkWrapper = styled(CoolStyles.InlineBlock)`
-   margin-left: 0.5rem;
-   vertical-align: middle;
-   line-height: 1.75rem;
+   height: 35rem;
+   overflow-y: scroll;
 `
 
 const TableWrapper = styled(CoolStyles.Block)`
-   margin-top: 0.5rem;
+   margin-left: 1rem;
+   margin-top: 1rem;
 `
 
-const CoolLink = styled(CoolStyles.InlineBlock)`
-   ${CoolStyles.italic};
-   ${CoolStyles.pointer};
-   color: ${CoolColors.cool_blue};
-   font-weight: normal;
-   &: hover{
-      ${CoolStyles.underline};
-   }
+const DetailsWrapper = styled(CoolStyles.InlineBlock)`
+   margin-left: 0.5rem;
 `
 
 export class InspectorBailiwicks extends Component {
@@ -70,67 +65,64 @@ export class InspectorBailiwicks extends Component {
       width_px: PropTypes.number.isRequired,
       on_focal_point_changed: PropTypes.func.isRequired,
       on_scope_changed: PropTypes.func.isRequired,
+      in_wait: PropTypes.bool.isRequired,
    }
 
    state = {
       all_bailiwicks: [],
       node_points: [],
-      bailiwick_id: 0,
+      bailiwick: null,
       node_index: 0,
-      selected_nodes: []
+      selected_nodes: [],
+      all_node_points: []
    }
 
    componentDidMount() {
-      const {on_focal_point_changed, on_scope_changed} = this.props
       let bailiwick_id = parseInt(localStorage.getItem(SELECTED_BAILIWICK_KEY))
       BailiwickData.fetch_bailiwicks(all_bailiwicks => {
          if (!bailiwick_id) {
             bailiwick_id = all_bailiwicks[0].id
          }
-         this.setState({
-            all_bailiwicks: all_bailiwicks,
-            bailiwick_id: bailiwick_id,
-            node_index: 0,
+         const bailiwick = all_bailiwicks.find(b => b.id === bailiwick_id)
+         this.fetch_node_points(node_points => {
+            this.setState({
+               all_bailiwicks: all_bailiwicks,
+               all_node_points: node_points,
+            })
+            setTimeout(() => {
+               this.select_bailiwick(bailiwick)
+            }, 100)
          })
-         setTimeout(() => {
-            const bailiwick = all_bailiwicks.find(bailiwick => bailiwick.id === bailiwick_id)
-            const display_settings = JSON.parse(bailiwick.display_settings)
-            on_focal_point_changed(display_settings.focal_point)
-            on_scope_changed(display_settings.scope)
-         }, 1000)
-      })
-      BailiwickData.fetch_node_points(node_points => {
-         // console.log("fetch_node_points", node_points)
-         this.setState({
-            node_points: node_points,
-         })
-         setTimeout(() => {
-            this.select_bailiwick(bailiwick_id)
-         }, 1000)
       })
    }
 
-   select_bailiwick = (id) => {
-      const {all_bailiwicks, node_points} = this.state
-      const {on_focal_point_changed, on_scope_changed} = this.props
-      const bailiwick_nodes = node_points.filter(node_point => node_point.bailiwick_id === id)
-      const selected_nodes = bailiwick_nodes.sort((a, b) => {
-         return a.short_form > b.short_form ? 1 : -1
+   fetch_node_points = (cb) => {
+      BailiwickData.fetch_node_points(result => {
+         cb(result)
       })
-      this.setState({
-         bailiwick_id: id,
-         node_index: 0,
-         selected_nodes: selected_nodes
-      })
-      const bailiwick = all_bailiwicks.find(bailiwick => bailiwick.id === id)
-      console.log("select_bailiwick", id, bailiwick)
-      if (!bailiwick) {
+   }
+
+   select_bailiwick = (bailiwick) => {
+      const {all_node_points, selected_nodes} = this.state
+      const {on_focal_point_changed, on_scope_changed, in_wait} = this.props
+      if (in_wait && selected_nodes.length) {
          return;
       }
+      const new_selected_nodes = all_node_points
+         .filter(np => np.bailiwick_id === bailiwick.id)
+         .sort((a, b) => {
+            return a.pattern - b.pattern
+         })
+      this.setState({
+         bailiwick: bailiwick,
+         node_index: 0,
+         selected_nodes: new_selected_nodes
+      })
+      console.log("select_bailiwick", bailiwick)
       const display_settings = JSON.parse(bailiwick.display_settings)
       on_focal_point_changed(display_settings.focal_point)
       on_scope_changed(display_settings.scope)
-      localStorage.setItem(SELECTED_BAILIWICK_KEY, `${id}`)
+      localStorage.setItem(SELECTED_BAILIWICK_KEY, `${bailiwick.id}`)
    }
 
    on_select_row = (index) => {
@@ -143,46 +135,51 @@ export class InspectorBailiwicks extends Component {
    }
 
    on_resize = (factor = 1) => {
-      const {all_bailiwicks, bailiwick_id} = this.state
+      const {bailiwick} = this.state
       const {on_scope_changed} = this.props
-      const bailiwick = all_bailiwicks.find(bailiwick => bailiwick.id === bailiwick_id)
       const display_settings = JSON.parse(bailiwick.display_settings)
       on_scope_changed(display_settings.scope / factor)
    }
 
    render() {
-      const {all_bailiwicks, bailiwick_id, node_index, selected_nodes} = this.state
-      const select_options = all_bailiwicks.map((bailiwick, i) => {
-         return {
-            label: bailiwick.name,
-            value: bailiwick.id,
-            help: `#${i}`
-         }
-      })
-      const bailiwicks_list = <CoolSelect
-         on_change={e => this.select_bailiwick(parseInt(e.target.value))}
-         value={bailiwick_id}
-         options={select_options}/>
-      const table_rows = selected_nodes.map(node => {
-         return {
-            name: node.name,
-            pattern: node.pattern,
-            short_form: node.short_form,
-         }
-      })
+      const {node_index, selected_nodes, bailiwick} = this.state
+      const {in_wait, width_px} = this.props
+      const bailiwicks_list = <BailiwickList
+         on_select={this.select_bailiwick}
+         in_wait={in_wait}
+      />
+      let bailiwick_details = []
+      let table_rows = []
+      if (bailiwick) {
+         table_rows = selected_nodes
+            .map(node => {
+               return {
+                  pattern: [render_pattern_block, node.pattern],
+                  short_form: node.short_form,
+                  long_form: node.long_form,
+               }
+            })
+         const highest_level = Math.round(100 * (Math.log(32 / bailiwick.magnitude) / Math.log(2))) / 100
+         bailiwick_details = <DetailsWrapper><BailiwickDetails
+            freeform_index={bailiwick.free_ordinal}
+            highest_level={highest_level}
+            selected_bailiwick={bailiwick}
+         /> </DetailsWrapper>
+      }
       return <ContentWrapper>
          <SelectWrapper>{bailiwicks_list}</SelectWrapper>
-         <LinkWrapper onClick={e => this.on_resize()}><CoolLink>{"re-size"}</CoolLink></LinkWrapper>
-         <LinkWrapper onClick={e => this.on_resize(2)}><CoolLink>{"+1"}</CoolLink></LinkWrapper>
-         <LinkWrapper onClick={e => this.on_resize(4)}><CoolLink>{"+2"}</CoolLink></LinkWrapper>
-         <TableWrapper><CoolTable
-            options={TABLE_CAN_SELECT}
-            columns={NODES_HEADERS}
-            data={table_rows}
-            key={'bailiwick-nodes'}
-            on_select_row={index => this.on_select_row(index)}
-            selected_row={node_index}
-         /></TableWrapper>
+         <CoolStyles.InlineBlock style={{width: `${width_px - 300}px`}}>
+            {bailiwick_details}
+            <TableWrapper>
+               <CoolTable
+                  options={TABLE_CAN_SELECT}
+                  columns={NODES_HEADERS}
+                  data={table_rows}
+                  key={'bailiwick-nodes'}
+                  on_select_row={index => this.on_select_row(index)}
+                  selected_row={node_index}
+               /></TableWrapper>
+         </CoolStyles.InlineBlock>
       </ContentWrapper>
    }
 }

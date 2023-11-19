@@ -59,9 +59,11 @@ export class InspectorStrata extends Component {
    static propTypes = {
       width_px: PropTypes.number.isRequired,
       focal_point: PropTypes.object.isRequired,
+      scope: PropTypes.number.isRequired,
       on_focal_point_changed: PropTypes.func.isRequired,
       on_scope_changed: PropTypes.func.isRequired,
       disabled: PropTypes.bool.isRequired,
+      update_counter: PropTypes.number.isRequired,
    }
 
    state = {
@@ -73,13 +75,55 @@ export class InspectorStrata extends Component {
 
    componentDidMount() {
       const {strata_ref} = this.state
-      const {on_scope_changed} = this.props
-      on_scope_changed(INITIAL_STRATUM.scope)
+      setTimeout(() => {
+         this.update_strata()
+      }, 1000)
       setTimeout(() => {
          if (strata_ref.current) {
             strata_ref.current.addEventListener("scroll", this.on_scroll);
          }
       }, 3000)
+   }
+
+   componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {
+      // if (prevProps.update_counter === this.props.update_counter) {
+      //    return;
+      // }
+      // this.update_strata()
+   }
+
+   update_strata = () => {
+      const {strata} = this.state
+      const {scope} = this.props
+      let new_strata = strata
+      let deepest_scope = new_strata[new_strata.length - 1].scope
+      while (deepest_scope > scope / 5) {
+         const newScope = deepest_scope / 5
+         if (newScope <= scope) {
+            break;
+         }
+         const new_stratum = {
+            scope: newScope,
+            stratum_ref: React.createRef()
+         }
+         new_strata.push(new_stratum)
+         deepest_scope = newScope
+      }
+      while (deepest_scope < scope / 5) {
+         new_strata.pop()
+         deepest_scope = new_strata[new_strata.length - 1].scope / 5
+      }
+      new_strata.pop()
+      const new_stratum = {
+         scope: scope * 5,
+         stratum_ref: React.createRef()
+      }
+      new_strata.push(new_stratum)
+      console.log("update_strata", new_strata, scope)
+      this.setState({
+         strata: new_strata,
+         stratum_index: new_strata.length - 1
+      })
    }
 
    on_scroll = (evt) => {
@@ -102,24 +146,27 @@ export class InspectorStrata extends Component {
          strata: strata,
          stratum_index: strata.length - 1
       })
-      on_scope_changed(newScope)
+      on_scope_changed(strata[strata.length - 1].scope / 5)
    }
 
    delete_step = (index) => {
       const {strata, stratum_index} = this.state
-      const {on_scope_changed} = this.props
+      const {on_scope_changed, disabled} = this.props
+      if (disabled) {
+         return;
+      }
       strata.splice(index, 1)
       this.setState({
          strata: strata,
          stratum_index: stratum_index - 1
       })
       const newScope = strata[stratum_index - 1].scope
-      on_scope_changed(newScope)
+      on_scope_changed(newScope / 5)
    }
 
    render() {
       const {strata, stratum_index, strata_ref} = this.state
-      const {width_px, focal_point, disbaled, on_focal_point_changed} = this.props
+      const {width_px, focal_point, disabled, on_focal_point_changed} = this.props
       const canvas_width = width_px - 2 * INSPECTOR_PADDING_PX - SCROLL_WIDTH_PX
       let tile_outline = []
       const all_strata = strata.map((stratum, index) => {
@@ -138,7 +185,7 @@ export class InspectorStrata extends Component {
                focal_point={focal_point}
                canvas_scope={canvas_scope}
                on_focal_point_change={focal_point => on_focal_point_changed(focal_point)}
-               disabled={disbaled}
+               disabled={disabled}
             />
          }
          const wrapper_style = {
@@ -146,8 +193,13 @@ export class InspectorStrata extends Component {
             height: `${canvas_width}px`,
          }
          const ideal_level = get_ideal_level(canvas_width, canvas_scope) - 1
+         const delete_button_style = {
+            top: `${canvas_width * index + 15}px`,
+            cursor: disabled ? 'default' : 'pointer'
+         }
          const delete_button = !index ? '' : <DeleteButton
-            style={{top: `${canvas_width * index + 15}px`}}
+            title={disabled ? 'disabled during update' : 'click to zoom out 2 levels'}
+            style={delete_button_style}
             onClick={e => this.delete_step(index)}>
             {"X"}
          </DeleteButton>
@@ -159,12 +211,16 @@ export class InspectorStrata extends Component {
                scope={canvas_scope}
                focal_point={focal_point}
                level={ideal_level > 1 ? ideal_level : 2}
-               on_plan_complete={()=>{}}
+               on_plan_complete={() => {
+               }}
             />
             {delete_button}
          </ContextWrapper>
       })
-      const button_style = {cursor: !disbaled ? "pointer" : "default"}
+      const button_style = {
+         cursor: !disabled ? "pointer" : "default",
+         opacity: disabled ? '0.5' : '1.0'
+      }
       const add_step_button = <AddStepButton
          style={button_style}
          onClick={e => this.add_step()}>

@@ -25,7 +25,8 @@ export class InspectorRaster extends Component {
       scope: PropTypes.number.isRequired,
       on_focal_point_change: PropTypes.func.isRequired,
       on_plan_complete: PropTypes.func.isRequired,
-      on_hover: PropTypes.func.isRequired
+      on_hover: PropTypes.func.isRequired,
+      effects_func: PropTypes.func.isRequired
    }
 
    state = {
@@ -117,7 +118,7 @@ export class InspectorRaster extends Component {
       const {all_bailiwicks} = this.state
       const {focal_point, scope, options} = this.props
       const canvas_size_px = this.get_canvas_size_px()
-      const ideal_level = get_ideal_level(canvas_size_px, scope)
+      const ideal_level = get_ideal_level(canvas_size_px, scope, 1.5)
       const visible_bailiwicks = !options[OPTION_SHOW_BAILIWICKS] ? [] : all_bailiwicks.filter(bailiwick => {
          const core_point = JSON.parse(bailiwick.core_point)
          if (core_point.x < focal_point.x - scope / 2) {
@@ -160,6 +161,7 @@ export class InspectorRaster extends Component {
             level={ideal_level}
             on_plan_complete={this.on_plan_complete}
             highlight_points={highlight_points}
+            incremental_depth={2}
          />
       </InspectorWrapper>
    }
