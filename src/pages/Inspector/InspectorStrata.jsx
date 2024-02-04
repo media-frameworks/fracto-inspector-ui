@@ -31,7 +31,7 @@ const AddStepButton = styled(CoolStyles.Block)`
    ${CoolStyles.align_center}
    ${CoolStyles.narrow_text_shadow}
    width: 8rem;
-   margin: 0 auto;
+   margin: 0 auto 0.5rem;
    background-color: #aaaaaa;
    color: white;
    padding: 0.25rem 0.5rem;
@@ -90,10 +90,16 @@ export class InspectorStrata extends Component {
       //    return;
       // }
       // this.update_strata()
+      const {strata_ref} = this.state
+      setTimeout(() => {
+         if (strata_ref) {
+            strata_ref.current.scrollIntoView({behavior: "smooth", block: "end"})
+         }
+      }, 1000)
    }
 
    update_strata = () => {
-      const {strata} = this.state
+      const {strata, strata_ref} = this.state
       const {scope} = this.props
       let new_strata = strata
       let deepest_scope = new_strata[new_strata.length - 1].scope
@@ -124,6 +130,11 @@ export class InspectorStrata extends Component {
          strata: new_strata,
          stratum_index: new_strata.length - 1
       })
+      setTimeout(() => {
+         if (strata_ref) {
+            strata_ref.current.scrollIntoView({behavior: "smooth", block: "end"})
+         }
+      }, 1000)
    }
 
    on_scroll = (evt) => {

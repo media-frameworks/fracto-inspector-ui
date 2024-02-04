@@ -9,22 +9,24 @@ import FractoSequencePlanner from "fracto/FractoSequencePlanner";
 
 import InspectorBailiwicks from "./InspectorBailiwicks"
 import InspectorBurrows from "./InspectorBurrows"
-import InspectorEffects from "./InspectorEffects"
+import InspectorSound from "./InspectorSound"
 
 const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_SEQUENCES = "sequences";
 const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_BUTRROWS = "burrows";
-const TAB_LABEL_EFFECTS = "effects";
+// const TAB_LABEL_EFFECTS = "effects";
+const TAB_LABEL_SOUND = "sound";
 const TABS_LIST = [
+   TAB_LABEL_SOUND,
    TAB_LABEL_ORBITALS,
-   TAB_LABEL_EFFECTS,
    TAB_LABEL_SEQUENCES,
    TAB_LABEL_BAILIWICKS,
    TAB_LABEL_BUTRROWS,
 ]
-const TAB_INDEX_ORBITALS = 0
-const TAB_INDEX_EFFECTS = 1
+const TAB_INDEX_SOUND = 0
+const TAB_INDEX_ORBITALS = 1
+// const TAB_INDEX_EFFECTS = 1
 const TAB_INDEX_SEQUENCES = 2
 const TAB_INDEX_BAILIWICKS = 3
 const TAB_INDEX_BUTRROWS = 4
@@ -37,10 +39,19 @@ export class InspectorTabs extends Component {
       on_scope_changed: PropTypes.func.isRequired,
       focal_point: PropTypes.object.isRequired,
       on_focal_point_changed: PropTypes.func.isRequired,
-      on_effect_changed: PropTypes.func.isRequired,
       canvas_buffer: PropTypes.object.isRequired,
+      ctx: PropTypes.object.isRequired,
       update_counter: PropTypes.number.isRequired,
       in_wait: PropTypes.bool.isRequired,
+      in_navlock: PropTypes.bool,
+      on_navlock_changed: PropTypes.func,
+      click_point: PropTypes.object
+   }
+
+   static defaultProps = {
+      in_navlock: false,
+      on_navlock_changed: null,
+      click_point: {}
    }
 
    state = {
@@ -48,12 +59,13 @@ export class InspectorTabs extends Component {
    }
 
    render() {
-      const {tab_index} = this.state
+      const {tab_index, click_point, } = this.state
+      const {in_navlock, on_navlock_changed} = this.props
       const {
          in_wait,
          focal_point, scope,
-         width_px, canvas_buffer, update_counter,
-         on_focal_point_changed, on_scope_changed, on_effect_changed,
+         width_px, canvas_buffer, ctx, update_counter,
+         on_focal_point_changed, on_scope_changed,
       } = this.props
       let content = `you have selected ${tab_index}`
       switch (tab_index) {
@@ -86,13 +98,24 @@ export class InspectorTabs extends Component {
                scope={scope}
                on_focal_point_changed={on_focal_point_changed}
                on_scope_changed={on_scope_changed}
+               in_wait={in_wait}
             />
             break;
-         case TAB_INDEX_EFFECTS:
-            content = <InspectorEffects
+         // caseTAB_INDEX_EFFECTS :
+         //    content = <InspectorEffects
+         //       width_px={width_px}
+         //       canvas_buffer={canvas_buffer}
+         //       ctx={ctx}
+         //    />
+         //    break;
+         case TAB_INDEX_SOUND:
+            content = <InspectorSound
                width_px={width_px}
-               on_effect_changed={on_effect_changed}
-               update_counter={update_counter}
+               canvas_buffer={canvas_buffer}
+               ctx={ctx}
+               click_point={click_point}
+               in_navlock={in_navlock}
+               on_navlock_changed={on_navlock_changed}
             />
             break;
          default:

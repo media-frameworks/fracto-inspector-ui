@@ -58,9 +58,12 @@ export class PageMain extends Component {
       in_hover: false,
       update_counter: 0,
       canvas_buffer: [],
+      ctx: null,
       options: {},
       highest_level: 0,
-      effects_func: null
+      effects_func: null,
+      in_navlock: false,
+      click_point: {}
    };
 
    static inspector_ref = React.createRef()
@@ -70,10 +73,10 @@ export class PageMain extends Component {
       if (recent_focal_point) {
          this.set_focal_point(JSON.parse(recent_focal_point))
       }
-      const recent_scope = localStorage.getItem(STORAGE_SCOPE_KEY)
-      if (recent_scope) {
-         this.set_scope(parseFloat(recent_scope))
-      }
+      // const recent_scope = localStorage.getItem(STORAGE_SCOPE_KEY)
+      // if (recent_scope) {
+      //    this.set_scope(parseFloat(recent_scope))
+      // }
    }
 
    on_resize = (left_width, right_width) => {
@@ -107,10 +110,11 @@ export class PageMain extends Component {
       }
    }
 
-   on_plan_complete = (canvas_buffer) => {
+   on_plan_complete = (canvas_buffer, ctx) => {
       const {update_counter} = this.state
       this.setState({
          canvas_buffer: canvas_buffer,
+         ctx: ctx,
          inspector_ready: true,
          update_counter: update_counter + 1
       })
@@ -135,6 +139,11 @@ export class PageMain extends Component {
    }
 
    set_focal_point = (focal_point) => {
+      // const {in_navlock} = this.state
+      // if (in_navlock) {
+      //    this.setState({click_point: focal_point})
+      //    return;
+      // }
       localStorage.setItem(STORAGE_FOCAL_POINT_KEY, JSON.stringify(focal_point))
       this.setState({
          focal_point: focal_point,
@@ -143,6 +152,10 @@ export class PageMain extends Component {
    }
 
    set_scope = (scope) => {
+      // const {in_navlock} = this.state
+      // if (in_navlock) {
+      //    return;
+      // }
       localStorage.setItem(STORAGE_SCOPE_KEY, `${scope}`)
       const level = Math.round(100 * (Math.log(32 / scope) / Math.log(2))) / 100
       this.setState({
@@ -153,6 +166,10 @@ export class PageMain extends Component {
    }
 
    set_level = (level) => {
+      // const {in_navlock} = this.state
+      // if (in_navlock) {
+      //    return;
+      // }
       const scope = Math.pow(2, 5 - level)
       this.setState({
          scope: scope,
@@ -161,14 +178,15 @@ export class PageMain extends Component {
       })
    }
 
-   on_effect_changed = (effects_func) => {
-      this.setState({effects_func: effects_func})
+   set_navlock_changed = () => {
+      const {in_navlock} = this.state
+      this.setState({in_navlock: !in_navlock})
    }
 
    render() {
       const {
          left_width, right_width, focal_point, inspector_ready, highest_level,
-         hover_point, scope, in_hover, update_counter, canvas_buffer
+         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx, in_navlock, click_point
       } = this.state;
       const {app_name} = this.props;
       const left_side = <InspectorStrata
@@ -199,9 +217,12 @@ export class PageMain extends Component {
          on_scope_changed={this.set_scope}
          on_focal_point_changed={this.set_focal_point}
          canvas_buffer={canvas_buffer}
+         ctx={ctx}
          update_counter={update_counter}
-         on_effect_changed={this.on_effect_changed}
          in_wait={!inspector_ready}
+         in_navlock={in_navlock}
+         on_navlock_changed={this.set_navlock_changed}
+         click_point={click_point}
       />
       const level_slider = <SliderWrapper>
          <FractoLevelSlider

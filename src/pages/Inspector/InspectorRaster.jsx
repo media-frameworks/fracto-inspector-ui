@@ -26,7 +26,6 @@ export class InspectorRaster extends Component {
       on_focal_point_change: PropTypes.func.isRequired,
       on_plan_complete: PropTypes.func.isRequired,
       on_hover: PropTypes.func.isRequired,
-      effects_func: PropTypes.func.isRequired
    }
 
    state = {
@@ -45,9 +44,9 @@ export class InspectorRaster extends Component {
 
    componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {
       const {focal_point, scope} = this.props
-      if (prevProps.focal_point.x !== focal_point.x ||
+      if ((prevProps.focal_point.x !== focal_point.x ||
          prevProps.focal_point.y !== focal_point.y ||
-         prevProps.scope !== scope) {
+         prevProps.scope !== scope) && this.state.inspector_ready) {
          this.setState({inspector_ready: false})
       }
    }
@@ -106,12 +105,12 @@ export class InspectorRaster extends Component {
       })
    }
 
-   on_plan_complete = (canvas_buffer) => {
+   on_plan_complete = (canvas_buffer, ctx) => {
       const {on_plan_complete} =this.props
       this.setState({
          inspector_ready: true,
       })
-      on_plan_complete(canvas_buffer)
+      on_plan_complete(canvas_buffer, ctx)
    }
 
    render() {
