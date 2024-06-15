@@ -6,7 +6,7 @@ import {CoolStyles} from "common/ui/CoolImports";
 import {Point3d} from "common/math/Vector";
 import HolodeckUtil from "common/threed/holodeck/HolodeckUtil";
 
-import RasterCanvas3D from "fracto/common/render/RasterCanvas3D";
+import RasterCanvas3D from "archive/RasterCanvas3D";
 import FractoData, {get_ideal_level} from "fracto/common/data/FractoData";
 import FractoMruCache, {TILE_CACHE} from "fracto/common/data/FractoMruCache";
 import FractoUtil from "fracto/common/FractoUtil";

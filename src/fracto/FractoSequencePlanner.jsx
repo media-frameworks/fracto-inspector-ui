@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styled from "styled-components";
 
 import {CoolSelect, CoolStyles, CoolButton, CoolTable} from "common/ui/CoolImports";
-import SequenceData from "fracto/common/data/SequenceData"
+import SequenceData from "fracto/common/feature/SequenceData"
 import {
    CELL_ALIGN_CENTER,
    CELL_TYPE_CALLBACK,

@@ -4,9 +4,9 @@ import styled from "styled-components";
 
 import {CoolStyles, CoolTable} from "common/ui/CoolImports";
 import {render_pattern_block} from "fracto/common/FractoStyles";
-import BailiwickData from "fracto/common/data/BailiwickData";
-import BailiwickList from "fracto/common/render/BailiwickList";
-import BailiwickDetails from "fracto/common/render/BailiwickDetails";
+import BailiwickData from "fracto/common/feature/BailiwickData";
+import BailiwickList from "fracto/common/ui/BailiwickList";
+import BailiwickDetails from "fracto/common/ui/BailiwickDetails";
 import {
    CELL_ALIGN_CENTER, CELL_TYPE_CALLBACK,
    CELL_TYPE_TEXT
@@ -80,6 +80,9 @@ export class InspectorBailiwicks extends Component {
    componentDidMount() {
       let bailiwick_id = parseInt(localStorage.getItem(SELECTED_BAILIWICK_KEY))
       BailiwickData.fetch_bailiwicks(all_bailiwicks => {
+         if (!all_bailiwicks.length) {
+            return
+         }
          if (!bailiwick_id) {
             bailiwick_id = all_bailiwicks[0].id
          }

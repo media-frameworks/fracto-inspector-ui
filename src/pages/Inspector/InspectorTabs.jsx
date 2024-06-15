@@ -4,12 +4,13 @@ import PropTypes from 'prop-types';
 
 import {CoolTabs} from "../../common/ui/CoolImports";
 
-import FractoOrbitalsList from "fracto/common/render/FractoOrbitalsList";
+import FractoOrbitalsList from "fracto/common/ui/FractoOrbitalsList";
 import FractoSequencePlanner from "fracto/FractoSequencePlanner";
 
 import InspectorBailiwicks from "./InspectorBailiwicks"
 import InspectorBurrows from "./InspectorBurrows"
 import InspectorSound from "./InspectorSound"
+import InspectorHarvest from "./InspectorHarvest";
 
 const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_SEQUENCES = "sequences";
@@ -17,19 +18,22 @@ const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_BUTRROWS = "burrows";
 // const TAB_LABEL_EFFECTS = "effects";
 const TAB_LABEL_SOUND = "sound";
+const TAB_LABEL_HARVEST = "harvest";
 const TABS_LIST = [
+   TAB_LABEL_HARVEST,
    TAB_LABEL_SOUND,
    TAB_LABEL_ORBITALS,
    TAB_LABEL_SEQUENCES,
    TAB_LABEL_BAILIWICKS,
    TAB_LABEL_BUTRROWS,
 ]
-const TAB_INDEX_SOUND = 0
-const TAB_INDEX_ORBITALS = 1
+const TAB_INDEX_HARVEST = 0
+const TAB_INDEX_SOUND = 1
+const TAB_INDEX_ORBITALS = 2
 // const TAB_INDEX_EFFECTS = 1
-const TAB_INDEX_SEQUENCES = 2
-const TAB_INDEX_BAILIWICKS = 3
-const TAB_INDEX_BUTRROWS = 4
+const TAB_INDEX_SEQUENCES = 3
+const TAB_INDEX_BAILIWICKS = 4
+const TAB_INDEX_BUTRROWS = 5
 
 export class InspectorTabs extends Component {
 
@@ -39,17 +43,15 @@ export class InspectorTabs extends Component {
       on_scope_changed: PropTypes.func.isRequired,
       focal_point: PropTypes.object.isRequired,
       on_focal_point_changed: PropTypes.func.isRequired,
-      canvas_buffer: PropTypes.object.isRequired,
-      ctx: PropTypes.object.isRequired,
       update_counter: PropTypes.number.isRequired,
       in_wait: PropTypes.bool.isRequired,
-      in_navlock: PropTypes.bool,
+      canvas_buffer: PropTypes.array,
+      ctx: PropTypes.object,
       on_navlock_changed: PropTypes.func,
       click_point: PropTypes.object
    }
 
    static defaultProps = {
-      in_navlock: false,
       on_navlock_changed: null,
       click_point: {}
    }
@@ -59,8 +61,8 @@ export class InspectorTabs extends Component {
    }
 
    render() {
-      const {tab_index, click_point, } = this.state
-      const {in_navlock, on_navlock_changed} = this.props
+      const {tab_index, click_point,} = this.state
+      const { on_navlock_changed} = this.props
       const {
          in_wait,
          focal_point, scope,
@@ -85,11 +87,11 @@ export class InspectorTabs extends Component {
             />
             break;
          case TAB_INDEX_ORBITALS:
-            content = <FractoOrbitalsList
+            content = canvas_buffer ? <FractoOrbitalsList
                width_px={width_px}
                canvas_buffer={canvas_buffer}
                update_counter={update_counter}
-            />
+            /> : []
             break;
          case TAB_INDEX_SEQUENCES:
             content = <FractoSequencePlanner
@@ -109,13 +111,21 @@ export class InspectorTabs extends Component {
          //    />
          //    break;
          case TAB_INDEX_SOUND:
-            content = <InspectorSound
+            content = canvas_buffer && ctx ? <InspectorSound
                width_px={width_px}
                canvas_buffer={canvas_buffer}
                ctx={ctx}
                click_point={click_point}
-               in_navlock={in_navlock}
                on_navlock_changed={on_navlock_changed}
+            /> : []
+            break;
+         case TAB_INDEX_HARVEST:
+            content = <InspectorHarvest
+               width_px={width_px}
+               focal_point={focal_point}
+               scope={scope}
+               on_focal_point_changed={on_focal_point_changed}
+               on_scope_changed={on_scope_changed}
             />
             break;
          default:

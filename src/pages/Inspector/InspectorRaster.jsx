@@ -7,10 +7,8 @@ import {CoolStyles} from "common/ui/CoolImports";
 import {get_ideal_level} from "fracto/common/data/FractoData";
 import FractoIncrementalRender from "fracto/common/render/FractoIncrementalRender";
 
-import BailiwickData from "fracto/common/data/BailiwickData";
 import {OPTION_SHOW_BAILIWICKS} from "../PageMain";
-
-const INSPECTOR_PADDING_PX = 10
+import {INSPECTOR_SIZE_PX} from "../constants";
 
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
    height: 99%;
@@ -26,39 +24,15 @@ export class InspectorRaster extends Component {
       on_focal_point_change: PropTypes.func.isRequired,
       on_plan_complete: PropTypes.func.isRequired,
       on_hover: PropTypes.func.isRequired,
+      disabled: PropTypes.bool.isRequired,
    }
 
    state = {
-      inspector_ready: false,
       all_bailiwicks: [],
       canvas_buffer: []
    };
 
    static inspector_ref = React.createRef()
-
-   componentDidMount() {
-      BailiwickData.fetch_bailiwicks(all_bailiwicks => {
-         this.setState({all_bailiwicks: all_bailiwicks,})
-      });
-   }
-
-   componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {
-      const {focal_point, scope} = this.props
-      if ((prevProps.focal_point.x !== focal_point.x ||
-         prevProps.focal_point.y !== focal_point.y ||
-         prevProps.scope !== scope) && this.state.inspector_ready) {
-         this.setState({inspector_ready: false})
-      }
-   }
-
-   get_canvas_size_px = () => {
-      const sontainer = InspectorRaster.inspector_ref.current
-      if (sontainer) {
-         const container_bounds = sontainer.getBoundingClientRect()
-         return Math.round(container_bounds.height - 2 * INSPECTOR_PADDING_PX)
-      }
-      return 1;
-   }
 
    get_mouse_pos = (e) => {
       const {focal_point, scope} = this.props
@@ -71,8 +45,7 @@ export class InspectorRaster extends Component {
          return {}
       }
       const bounds = inspector_wrapper.getBoundingClientRect()
-      const canvas_size_px = this.get_canvas_size_px()
-      const increment = scope / canvas_size_px
+      const increment = scope / INSPECTOR_SIZE_PX
       const x = inspector_bounds.left + increment * (e.clientX - bounds.x)
       const y = inspector_bounds.top - increment * (e.clientY - bounds.y)
       return {x: x, y: y}
@@ -90,15 +63,16 @@ export class InspectorRaster extends Component {
    }
 
    on_click = (e) => {
-      const {focal_point, scope, on_focal_point_change} = this.props
+      const {focal_point, scope, on_focal_point_change, disabled} = this.props
+      if (disabled) {
+         return
+      }
       const container_bounds = InspectorRaster.inspector_ref.current.getBoundingClientRect()
       const img_x = Math.floor(e.clientX - container_bounds.left)
       const img_y = Math.floor(e.clientY - container_bounds.top)
-      console.log("on_click", img_x, img_y)
       const leftmost = focal_point.x - scope / 2
       const topmost = focal_point.y + scope / 2
       const increment = scope / container_bounds.width
-      this.setState({inspector_ready: false})
       on_focal_point_change({
          x: leftmost + increment * img_x,
          y: topmost - increment * img_y,
@@ -107,17 +81,13 @@ export class InspectorRaster extends Component {
 
    on_plan_complete = (canvas_buffer, ctx) => {
       const {on_plan_complete} =this.props
-      this.setState({
-         inspector_ready: true,
-      })
       on_plan_complete(canvas_buffer, ctx)
    }
 
    render() {
       const {all_bailiwicks} = this.state
-      const {focal_point, scope, options} = this.props
-      const canvas_size_px = this.get_canvas_size_px()
-      const ideal_level = get_ideal_level(canvas_size_px, scope, 1.5)
+      const {focal_point, scope, options, disabled} = this.props
+      const ideal_level = get_ideal_level(INSPECTOR_SIZE_PX, scope, 1.5)
       const visible_bailiwicks = !options[OPTION_SHOW_BAILIWICKS] ? [] : all_bailiwicks.filter(bailiwick => {
          const core_point = JSON.parse(bailiwick.core_point)
          if (core_point.x < focal_point.x - scope / 2) {
@@ -154,13 +124,14 @@ export class InspectorRaster extends Component {
          onMouseLeave={this.on_mouseleave}>
          <FractoIncrementalRender
             key={'inspection_raster'}
-            width_px={canvas_size_px}
+            width_px={INSPECTOR_SIZE_PX}
             scope={scope}
             focal_point={focal_point}
             level={ideal_level}
             on_plan_complete={this.on_plan_complete}
             highlight_points={highlight_points}
             incremental_depth={2}
+            disabled={disabled}
          />
       </InspectorWrapper>
    }

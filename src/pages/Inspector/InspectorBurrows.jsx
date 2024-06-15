@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styled from "styled-components";
 
 import {CoolStyles, CoolSelect, CoolColors} from "common/ui/CoolImports";
-import BurrowsData from "fracto/common/data/BurrowsData";
+import BurrowsData from "fracto/common/feature/BurrowsData";
 
 const SELECTED_BURROW_KEY = "selected_burrow";
 

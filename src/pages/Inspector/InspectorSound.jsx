@@ -40,7 +40,7 @@ export class InspectorSound extends Component {
    }
 
    render() {
-      const {in_navlock, click_point} = this.props
+      const {in_navlock} = this.props
       const navlock_button = <CoolButton
          primary={1}
          on_click={this.set_navlock}

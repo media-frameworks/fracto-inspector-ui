@@ -2,20 +2,22 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styled from "styled-components";
 
-import AppPageMain from 'common/app/AppPageMain';
+import {
+   INSPECTOR_SIZE_PX,
+   INSPECTOR_PADDING_PX,
+   STORAGE_FOCAL_POINT_KEY,
+   STORAGE_SCOPE_KEY
+} from "./constants";
 import {CoolStyles} from 'common/ui/CoolImports';
+import AppPageMain from 'common/app/AppPageMain';
 
-import FractoRenderDetails from "fracto/common/render/FractoRenderDetails"
-import FractoLevelSlider from "fracto/common/render/FractoLevelSlider";
+import FractoRenderDetails from "fracto/common/ui/FractoRenderDetails"
+import FractoLevelSlider from "fracto/common/ui/FractoLevelSlider";
 
 import InspectorStrata from "./Inspector/InspectorStrata"
 import InspectorRaster from "./Inspector/InspectorRaster";
 import InspectorTabs from "./Inspector/InspectorTabs";
 
-const INSPECTOR_PADDING_PX = 5
-
-const STORAGE_FOCAL_POINT_KEY = "inspector_focal_point"
-const STORAGE_SCOPE_KEY = "inspector_scope"
 export const OPTION_SHOW_BAILIWICKS = "show_bailiwicks"
 
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
@@ -49,7 +51,7 @@ export class PageMain extends Component {
    }
 
    state = {
-      left_width: 0,
+      left_width: 200,
       right_width: 0,
       focal_point: {x: -0.75, y: 0.25},
       scope: 2.5,
@@ -62,7 +64,6 @@ export class PageMain extends Component {
       options: {},
       highest_level: 0,
       effects_func: null,
-      in_navlock: false,
       click_point: {}
    };
 
@@ -73,10 +74,6 @@ export class PageMain extends Component {
       if (recent_focal_point) {
          this.set_focal_point(JSON.parse(recent_focal_point))
       }
-      // const recent_scope = localStorage.getItem(STORAGE_SCOPE_KEY)
-      // if (recent_scope) {
-      //    this.set_scope(parseFloat(recent_scope))
-      // }
    }
 
    on_resize = (left_width, right_width) => {
@@ -85,16 +82,6 @@ export class PageMain extends Component {
          left_width: left_width,
          right_width: right_width
       })
-   }
-
-   get_canvas_size_px = () => {
-      const container = PageMain.inspector_ref.current
-      if (container) {
-         const container_bounds = container.getBoundingClientRect()
-         const canvas_size = Math.round(container_bounds.height - 2 * INSPECTOR_PADDING_PX)
-         return canvas_size - 20;
-      }
-      return 1;
    }
 
    on_hover = (location) => {
@@ -121,12 +108,12 @@ export class PageMain extends Component {
    }
 
    render_inspection = (width_px) => {
-      const {focal_point, scope, options, effects_func} = this.state
-      const canvas_size_px = this.get_canvas_size_px()
+      const {focal_point, scope, options, effects_func, inspector_ready} = this.state
       return <InspectorWrapper
+         key={'inspector-raster'}
          ref={PageMain.inspector_ref}>
          <InspectorRaster
-            width_px={canvas_size_px}
+            width_px={INSPECTOR_SIZE_PX}
             focal_point={focal_point}
             scope={scope}
             options={options}
@@ -134,16 +121,12 @@ export class PageMain extends Component {
             on_focal_point_change={this.set_focal_point}
             on_hover={location => this.on_hover(location)}
             on_plan_complete={this.on_plan_complete}
-         />
+            disabled={!inspector_ready}
+         />`
       </InspectorWrapper>
    }
 
    set_focal_point = (focal_point) => {
-      // const {in_navlock} = this.state
-      // if (in_navlock) {
-      //    this.setState({click_point: focal_point})
-      //    return;
-      // }
       localStorage.setItem(STORAGE_FOCAL_POINT_KEY, JSON.stringify(focal_point))
       this.setState({
          focal_point: focal_point,
@@ -152,12 +135,9 @@ export class PageMain extends Component {
    }
 
    set_scope = (scope) => {
-      // const {in_navlock} = this.state
-      // if (in_navlock) {
-      //    return;
-      // }
       localStorage.setItem(STORAGE_SCOPE_KEY, `${scope}`)
       const level = Math.round(100 * (Math.log(32 / scope) / Math.log(2))) / 100
+      console.log("scope", scope)
       this.setState({
          scope: scope,
          highest_level: level,
@@ -166,10 +146,6 @@ export class PageMain extends Component {
    }
 
    set_level = (level) => {
-      // const {in_navlock} = this.state
-      // if (in_navlock) {
-      //    return;
-      // }
       const scope = Math.pow(2, 5 - level)
       this.setState({
          scope: scope,
@@ -178,36 +154,32 @@ export class PageMain extends Component {
       })
    }
 
-   set_navlock_changed = () => {
-      const {in_navlock} = this.state
-      this.setState({in_navlock: !in_navlock})
-   }
-
    render() {
       const {
          left_width, right_width, focal_point, inspector_ready, highest_level,
-         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx, in_navlock, click_point
+         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx, click_point,
       } = this.state;
       const {app_name} = this.props;
-      const left_side = <InspectorStrata
-         width_px={left_width}
-         scope={scope}
-         focal_point={focal_point}
-         on_scope_changed={this.set_scope}
-         on_focal_point_changed={this.set_focal_point}
-         update_counter={update_counter}
-         disabled={!inspector_ready}
-      />
-      const canvas_size_px = this.get_canvas_size_px()
-      const details_width_px = right_width - canvas_size_px - INSPECTOR_PADDING_PX * 15
+      const left_side = [
+         <InspectorStrata
+            key={'strata-pane'}
+            width_px={left_width}
+            scope={scope}
+            focal_point={focal_point}
+            on_scope_changed={this.set_scope}
+            on_focal_point_changed={this.set_focal_point}
+            update_counter={update_counter}
+            disabled={!inspector_ready}
+         />
+      ]
+      const details_width_px = right_width - INSPECTOR_SIZE_PX - INSPECTOR_PADDING_PX * 15
       const render_details = <DetailsWrapper>
          <FractoRenderDetails
             width_px={details_width_px}
             scope={scope}
             focal_point={focal_point}
-            on_scope_changed={this.set_scope}
-            on_focal_point_changed={this.set_focal_point}
             cursor_point={in_hover ? hover_point : null}
+            canvas_buffer={canvas_buffer}
          />
       </DetailsWrapper>
       const inspector_tabs = <InspectorTabs
@@ -220,15 +192,15 @@ export class PageMain extends Component {
          ctx={ctx}
          update_counter={update_counter}
          in_wait={!inspector_ready}
-         in_navlock={in_navlock}
          on_navlock_changed={this.set_navlock_changed}
          click_point={click_point}
       />
-      const level_slider = <SliderWrapper>
+      const level_slider = <SliderWrapper
+         key={'level-slider'}>
          <FractoLevelSlider
             selected_level={highest_level}
             on_change={value => this.set_level(value)}
-            height_px={canvas_size_px - INSPECTOR_PADDING_PX * 2}
+            height_px={INSPECTOR_SIZE_PX - INSPECTOR_PADDING_PX * 2}
             in_wait={!inspector_ready}
          />
       </SliderWrapper>
@@ -240,6 +212,7 @@ export class PageMain extends Component {
          this.render_inspection(right_width),
          level_slider,
          <CoolStyles.InlineBlock
+            key={'fracto-details'}
             style={details_style}>
             {render_details}
             {inspector_tabs}
