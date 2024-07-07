@@ -11,6 +11,7 @@ import InspectorBailiwicks from "./InspectorBailiwicks"
 import InspectorBurrows from "./InspectorBurrows"
 import InspectorSound from "./InspectorSound"
 import InspectorHarvest from "./InspectorHarvest";
+import InspectorTest from "./InspectorTest";
 
 const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_SEQUENCES = "sequences";
@@ -19,6 +20,7 @@ const TAB_LABEL_BUTRROWS = "burrows";
 // const TAB_LABEL_EFFECTS = "effects";
 const TAB_LABEL_SOUND = "sound";
 const TAB_LABEL_HARVEST = "harvest";
+const TAB_LABEL_TEST = "test";
 const TABS_LIST = [
    TAB_LABEL_HARVEST,
    TAB_LABEL_SOUND,
@@ -26,6 +28,7 @@ const TABS_LIST = [
    TAB_LABEL_SEQUENCES,
    TAB_LABEL_BAILIWICKS,
    TAB_LABEL_BUTRROWS,
+   TAB_LABEL_TEST,
 ]
 const TAB_INDEX_HARVEST = 0
 const TAB_INDEX_SOUND = 1
@@ -34,6 +37,7 @@ const TAB_INDEX_ORBITALS = 2
 const TAB_INDEX_SEQUENCES = 3
 const TAB_INDEX_BAILIWICKS = 4
 const TAB_INDEX_BUTRROWS = 5
+const TAB_INDEX_TEST = 6
 
 export class InspectorTabs extends Component {
 
@@ -61,8 +65,8 @@ export class InspectorTabs extends Component {
    }
 
    render() {
-      const {tab_index, click_point,} = this.state
-      const { on_navlock_changed} = this.props
+      const {tab_index} = this.state
+      const {on_navlock_changed, click_point} = this.props
       const {
          in_wait,
          focal_point, scope,
@@ -126,6 +130,14 @@ export class InspectorTabs extends Component {
                scope={scope}
                on_focal_point_changed={on_focal_point_changed}
                on_scope_changed={on_scope_changed}
+            />
+            break;
+         case TAB_INDEX_TEST:
+            content = <InspectorTest
+               width_px={width_px}
+               focal_point={focal_point}
+               scope={scope}
+               click_point={click_point}
             />
             break;
          default:

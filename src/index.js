@@ -1,11 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 
 import PageMain from "pages/PageMain";
 import FractoIndexedTilesLoader from "./fracto/common/data/FractoIndexedTilesLoader";
 
 const APP_NAME = 'fracto-inspector'
-const page_main = <PageMain app_name={APP_NAME}/>
+const page_main = <PageMain key={'page-main'} app_name={APP_NAME}/>
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -70,10 +70,11 @@ export class PageMain extends Component {
    static inspector_ref = React.createRef()
 
    componentDidMount() {
-      const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
-      if (recent_focal_point) {
-         this.set_focal_point(JSON.parse(recent_focal_point))
-      }
+      // const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
+      // if (recent_focal_point) {
+      //    this.set_focal_point(JSON.parse(recent_focal_point))
+      // }
+      console.log('page ready')
    }
 
    on_resize = (left_width, right_width) => {
@@ -109,6 +110,7 @@ export class PageMain extends Component {
 
    render_inspection = (width_px) => {
       const {focal_point, scope, options, effects_func, inspector_ready} = this.state
+      console.log("render_inspection", inspector_ready)
       return <InspectorWrapper
          key={'inspector-raster'}
          ref={PageMain.inspector_ref}>
@@ -193,7 +195,7 @@ export class PageMain extends Component {
          update_counter={update_counter}
          in_wait={!inspector_ready}
          on_navlock_changed={this.set_navlock_changed}
-         click_point={click_point}
+         click_point={focal_point}
       />
       const level_slider = <SliderWrapper
          key={'level-slider'}>
