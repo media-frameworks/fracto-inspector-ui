@@ -110,7 +110,6 @@ export class PageMain extends Component {
 
    render_inspection = (width_px) => {
       const {focal_point, scope, options, effects_func, inspector_ready} = this.state
-      console.log("render_inspection", inspector_ready)
       return <InspectorWrapper
          key={'inspector-raster'}
          ref={PageMain.inspector_ref}>
@@ -159,7 +158,7 @@ export class PageMain extends Component {
    render() {
       const {
          left_width, right_width, focal_point, inspector_ready, highest_level,
-         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx, click_point,
+         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx,
       } = this.state;
       const {app_name} = this.props;
       const left_side = [

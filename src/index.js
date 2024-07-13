@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 
 import PageMain from "pages/PageMain";
 import FractoIndexedTilesLoader from "./fracto/common/data/FractoIndexedTilesLoader";
