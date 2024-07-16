@@ -12,7 +12,7 @@ const SCROLL_WIDTH_PX = 20
 const INSPECTOR_PADDING_PX = 10
 const SCOPE_FACTOR = 3.5
 const INITIAL_STRATUM = {
-   scope: SCOPE_FACTOR / 2.0,
+   scope: SCOPE_FACTOR,
    stratum_ref: React.createRef()
 }
 
@@ -75,22 +75,19 @@ export class InspectorStrata extends Component {
    };
 
    componentDidMount() {
-      setTimeout(() => {
-         this.update_strata()
-      }, 150)
+      this.update_strata()
    }
 
    componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {
       if (prevProps.update_counter === this.props.update_counter) {
          return;
       }
-      // this.update_strata()
       setTimeout(() => {
          const {button_ref} = this.state
          if (button_ref && button_ref.current) {
             button_ref.current.scrollIntoView({behavior: "smooth", block: "end"})
          }
-      }, 1000)
+      }, 100)
    }
 
    detect_coverage = () => {
@@ -158,18 +155,42 @@ export class InspectorStrata extends Component {
    }
 
    delete_step = (index) => {
-      const {strata, stratum_index} = this.state
+      const {strata} = this.state
       const {on_scope_changed, disabled} = this.props
       if (disabled) {
          return;
       }
-      strata.splice(index, 1)
+      const delete_count = strata.length - index + 1
+      strata.splice(index, delete_count)
       this.setState({
          strata: strata,
-         stratum_index: stratum_index - 1
+         stratum_index: strata.length - 1
       })
-      const new_scope = strata[stratum_index - 1].scope
+      const new_scope = strata[strata.length - 1].scope
       on_scope_changed(new_scope / SCOPE_FACTOR)
+   }
+
+   on_click = (e, stratum_index) => {
+      const {strata} = this.state
+      const {on_focal_point_changed, focal_point} = this.props
+      const stratum = strata[stratum_index]
+      if (!stratum) {
+         return;
+      }
+      const canvas_bounds = e.target.getBoundingClientRect()
+      const img_x = Math.round(e.clientX - canvas_bounds.left)
+      const img_y = Math.round(e.clientY - canvas_bounds.top)
+      const pixel_width = stratum.scope / canvas_bounds.width
+      const leftmost = focal_point.x - stratum.scope / 2
+      const topmost = focal_point.y + stratum.scope / 2
+      const new_focal_point = {
+         x: leftmost + img_x * pixel_width,
+         y: topmost - img_y * pixel_width
+      }
+      on_focal_point_changed(new_focal_point)
+      if (stratum_index < strata.length - 1) {
+         this.delete_step(stratum_index + 1)
+      }
    }
 
    render() {
@@ -215,14 +236,13 @@ export class InspectorStrata extends Component {
          return <ContextWrapper
             key={`stratum-${index}`}
             ref={stratum.stratum_ref}
+            onClick={e => this.on_click(e, index)}
             style={wrapper_style}>
             <FractoIncrementalRender
                width_px={canvas_width}
                scope={canvas_scope}
                focal_point={focal_point}
                level={ideal_level > 1 ? ideal_level : 2}
-               on_plan_complete={() => {
-               }}
                disabled={disabled}/>
             {delete_button}
          </ContextWrapper>
