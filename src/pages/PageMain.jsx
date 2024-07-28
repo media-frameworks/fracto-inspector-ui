@@ -39,7 +39,7 @@ const DetailsWrapper = styled(CoolStyles.Block)`
    margin-bottom: 0.5rem;
    background-color: white;
    overflow-x: hidden;
-   padding: 0.5rem;
+   padding: 0.25rem 0;
    border: 0.125rem solid #888888;
    border-radius: 0.25rem;
 `;
@@ -195,6 +195,7 @@ export class PageMain extends Component {
          in_wait={!inspector_ready}
          on_navlock_changed={this.set_navlock_changed}
          click_point={focal_point}
+         cursor_point={in_hover ? hover_point : null}
       />
       const level_slider = <SliderWrapper
          key={'level-slider'}>

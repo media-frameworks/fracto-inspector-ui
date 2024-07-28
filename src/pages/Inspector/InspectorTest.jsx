@@ -45,7 +45,8 @@ export class InspectorTest extends Component {
       width_px: PropTypes.number.isRequired,
       focal_point: PropTypes.object.isRequired,
       scope: PropTypes.number.isRequired,
-      click_point: PropTypes.object.isRequired
+      click_point: PropTypes.object.isRequired,
+      cursor_point: PropTypes.object.isRequired
    }
 
    state = {}
@@ -69,7 +70,8 @@ export class InspectorTest extends Component {
             x: {
                type: 'linear',
             },
-         }
+         },
+         animation: false
       }
       const data_dataset = {
          datasets: [
@@ -113,6 +115,9 @@ export class InspectorTest extends Component {
 
    click_point_data = () => {
       const {click_point} = this.props
+      if (!click_point) {
+         return []
+      }
       const fracto_values = FractoFastCalc.calc(click_point.x, click_point.y)
       // if (fracto_values.pattern !== 5) {
       //    return 'not 5'

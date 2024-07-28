@@ -1,0 +1,6 @@
+{
+  "plugins": [
+    "@babel/plugin-transform-class-static-block",
+    "@babel/plugin-transform-class-properties"
+  ]
+}

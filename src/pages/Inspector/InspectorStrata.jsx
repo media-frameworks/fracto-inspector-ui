@@ -11,10 +11,6 @@ import FractoIncrementalRender from "fracto/common/render/FractoIncrementalRende
 const SCROLL_WIDTH_PX = 20
 const INSPECTOR_PADDING_PX = 10
 const SCOPE_FACTOR = 3.5
-const INITIAL_STRATUM = {
-   scope: SCOPE_FACTOR,
-   stratum_ref: React.createRef()
-}
 
 const StrataWrapper = styled(CoolStyles.Block)`
    height: 100%;
@@ -68,14 +64,18 @@ export class InspectorStrata extends Component {
    }
 
    state = {
-      strata: [INITIAL_STRATUM],
+      strata: [],
       stratum_index: 0,
       button_ref: React.createRef(),
       strata_top_px: 0,
    };
 
    componentDidMount() {
-      this.update_strata()
+      const initial_stratum = this.create_stratum(SCOPE_FACTOR)
+      this.setState({strata: [initial_stratum]})
+      setTimeout(() => {
+         this.update_strata()
+      }, 500)
    }
 
    componentDidUpdate(prevProps: Readonly<P>, prevState: Readonly<S>, snapshot: SS) {

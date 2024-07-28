@@ -25,7 +25,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-magnifier": "^3.0.4",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "react-slider": "^2.0.6",
     "react-time-ago": "^7.3.1",
     "stream": "^0.0.2",
@@ -58,7 +58,8 @@
     ]
   },
   "devDependencies": {
-    "0": "@babel/plugin-proposal-private-property-in-object",
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-class-static-block": "^7.24.7",
+    "ajv": "^7.2.4"
   }
 }
