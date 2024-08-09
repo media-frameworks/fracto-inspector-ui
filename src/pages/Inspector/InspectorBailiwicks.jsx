@@ -51,7 +51,7 @@ export class InspectorBailiwicks extends Component {
       bailiwick: null,
       canvas_bounds: {},
       visible_bailiwicks: [],
-      list_all: true,
+      list_all: false,
    }
 
    componentDidMount() {
@@ -91,7 +91,6 @@ export class InspectorBailiwicks extends Component {
          }
          return true;
       })
-         .sort((a, b) => b.magnitude - a.magnitude)
    }
 
    decorate_canvas = () => {
@@ -240,7 +239,7 @@ export class InspectorBailiwicks extends Component {
          <ControlsWrapper>
             {controls}
          </ControlsWrapper>
-         <SelectWrapper style={{width: width_px}}>
+         <SelectWrapper style={{width: width_px - 20}}>
             <BailiwickList
                bailiwick_list={bailiwicks_list}
                on_select={this.select_bailiwick}
