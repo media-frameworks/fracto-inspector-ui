@@ -51,7 +51,7 @@ export class InspectorBailiwicks extends Component {
       bailiwick: null,
       canvas_bounds: {},
       visible_bailiwicks: [],
-      list_all: false,
+      list_all: true,
    }
 
    componentDidMount() {
@@ -107,8 +107,11 @@ export class InspectorBailiwicks extends Component {
       BailiwickData.fetch_bailiwicks(all_bailiwicks => {
          const canvas = ctx.canvas
          const canvas_bounds = canvas.getBoundingClientRect()
+         const sorted = all_bailiwicks
+            .sort((a, b) => a.updated_at > b.updated_at ? 1 : -1)
+         console.log('sorted', sorted)
          this.setState({
-            all_bailiwicks: all_bailiwicks,
+            all_bailiwicks: sorted,
             canvas_bounds: canvas_bounds
          })
          setTimeout(() => {
@@ -144,8 +147,8 @@ export class InspectorBailiwicks extends Component {
       return null;
    }
 
-   add_bailiwick = () => {
-      const {ctx, canvas_buffer, focal_point, scope, on_scope_changed, on_focal_point_changed} = this.props
+   find_bailiwick = () => {
+      const {canvas_buffer, focal_point, scope} = this.props
       const increment = scope / canvas_buffer.length;
       const leftmost = focal_point.x - scope / 2
       const topmost = focal_point.y + scope / 2
@@ -188,14 +191,18 @@ export class InspectorBailiwicks extends Component {
       console.log('result', result)
       const core_point = best_patterns[0].points[0]
       const octave_point = this.find_octave_point(core_point, best_patterns[1].points)
-      FractoCanvasOverlay.render_highlights(
-         ctx, focal_point, scope, [core_point, octave_point])
+      const pattern = best_patterns[0].pattern
+      return [core_point, octave_point, pattern]
+   }
+
+   save_bailiwick = (core_point, octave_point, pattern, id = 0) => {
+      const {on_focal_point_changed, on_scope_changed} = this.props
       const x_diff = core_point.x - octave_point.x
       const y_diff = core_point.y - octave_point.y
       const magnitude = Math.sqrt(x_diff * x_diff + y_diff * y_diff)
       const cq_code = FractoUtil.CQ_code_from_point(core_point.x, core_point.y)
       const new_bailiwick = {
-         pattern: best_patterns[0].pattern,
+         pattern: pattern,
          magnitude: magnitude,
          core_point: {x: core_point.x, y: core_point.y},
          octave_point: {x: octave_point.x, y: octave_point.y},
@@ -208,11 +215,28 @@ export class InspectorBailiwicks extends Component {
          },
          CQ_code: cq_code.slice(0, 25),
       }
+      if (id) {
+         new_bailiwick.id = id
+      }
       BailiwickData.save_bailiwick(new_bailiwick, 0, result => {
          console.log("BailiwickData.save_bailiwick", result)
          on_scope_changed(new_bailiwick.display_settings.scope)
          on_focal_point_changed(new_bailiwick.display_settings.focal_point)
       })
+   }
+
+   add_bailiwick = () => {
+      const {ctx, focal_point, scope} = this.props
+      const [core_point, octave_point, pattern] = this.find_bailiwick()
+      FractoCanvasOverlay.render_highlights(
+         ctx, focal_point, scope, [core_point, octave_point])
+      this.save_bailiwick(core_point, octave_point, pattern)
+   }
+
+   refine_bailiwick = (bailiwick) => {
+      const [core_point, octave_point, pattern] = this.find_bailiwick()
+      console.log('bailiwick', bailiwick, core_point, octave_point, pattern)
+      this.save_bailiwick(core_point, octave_point, pattern, bailiwick.id)
    }
 
    render() {
@@ -229,12 +253,17 @@ export class InspectorBailiwicks extends Component {
       const refresh_link = <CoolStyles.LinkSpan onClick={this.fetch_bailiwicks}>
          {'refresh'}
       </CoolStyles.LinkSpan>
+      const bailiwicks_list = list_all ? all_bailiwicks : this.visible_bailiwicks()
+      const refine_link = bailiwicks_list.length === 1 ? <CoolStyles.LinkSpan
+         onClick={e => this.refine_bailiwick(bailiwicks_list[0])}>
+         {'refine'}
+      </CoolStyles.LinkSpan> : []
       const controls = [
          add_bailiwick, <Spacer/>,
          list_all_link, <Spacer/>,
-         refresh_link
+         refresh_link, <Spacer/>,
+         refine_link,
       ]
-      const bailiwicks_list = list_all ? all_bailiwicks : this.visible_bailiwicks()
       return <ContentWrapper>
          <ControlsWrapper>
             {controls}
