@@ -67,10 +67,16 @@ export class InspectorCoverage extends Component {
 
    componentDidMount() {
       if (!InspectorCoverage.all_short_codes) {
-         InspectorCoverage.all_short_codes = {}
+         InspectorCoverage.all_short_codes = []
+         for (let level = 0; level < 50; level++) {
+            InspectorCoverage.all_short_codes[level] = {}
+         }
          FractoIndexedTiles.load_short_codes('indexed', short_codes => {
             this.setState({short_codes})
-            short_codes.forEach(short_code => InspectorCoverage.all_short_codes[short_code] = true)
+            short_codes.forEach(short_code => {
+               const level = short_code.length
+               InspectorCoverage.all_short_codes[level][short_code] = true
+            })
             this.setState({loading_short_codes: false})
             this.detect_coverage()
          })
@@ -142,16 +148,17 @@ export class InspectorCoverage extends Component {
          const short_code_1 = `${short_code}1`
          const short_code_2 = `${short_code}2`
          const short_code_3 = `${short_code}3`
-         if (!InspectorCoverage.all_short_codes[short_code_0]) {
+         const level = short_code.length + 1
+         if (!InspectorCoverage.all_short_codes[level][short_code_0]) {
             can_do.push(short_code_0)
          }
-         if (!InspectorCoverage.all_short_codes[short_code_1]) {
+         if (!InspectorCoverage.all_short_codes[level][short_code_1]) {
             can_do.push(short_code_1)
          }
-         if (!InspectorCoverage.all_short_codes[short_code_2]) {
+         if (!InspectorCoverage.all_short_codes[level][short_code_2]) {
             can_do.push(short_code_2)
          }
-         if (!InspectorCoverage.all_short_codes[short_code_3]) {
+         if (!InspectorCoverage.all_short_codes[level][short_code_3]) {
             can_do.push(short_code_3)
          }
       })
