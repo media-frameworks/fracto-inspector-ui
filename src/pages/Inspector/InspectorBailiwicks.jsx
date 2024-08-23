@@ -2,13 +2,14 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styled from "styled-components";
 
-import {CoolStyles} from "common/ui/CoolImports";
+import {CoolStyles, CoolSelect} from "common/ui/CoolImports";
 import BailiwickData from "fracto/common/feature/BailiwickData";
 import BailiwickList from "fracto/common/ui/BailiwickList";
 import FractoCanvasOverlay from "fracto/common/ui/FractoCanvasOverlay";
 import FractoUtil from "fracto/common/FractoUtil";
 
 const SELECTED_BAILIWICK_KEY = "selected_bailiwick";
+const LS_BAILIWICK_ORDERING_KEY = 'ls_bailiwick_ordering_key'
 
 const ContentWrapper = styled(CoolStyles.Block)`
    background-color: white;
@@ -32,6 +33,26 @@ const Spacer = styled(CoolStyles.InlineBlock)`
    width: 1rem;
 `
 
+const ORDERING_BY_SM_TO_LG = 'small to large'
+const ORDERING_BY_LG_TO_SM = 'large to small'
+const ORDERING_BY_MOST_RECENT = 'most recent'
+const ORDERING_BY_LEAST_RECENT = 'least recent'
+const ORDERING_BY_CREATED_FIRST = 'created first'
+const ORDERING_BY_CREATED_LAST = 'created last'
+const ORDERING_BY_ORBITAL_LOW_TO_HIGH = 'orbital low to high'
+const ORDERING_BY_ORBITAL_HIGH_TO_LOW = 'orbital high to low'
+
+const ordering_options = [
+   {label: ORDERING_BY_SM_TO_LG, value: ORDERING_BY_SM_TO_LG},
+   {label: ORDERING_BY_LG_TO_SM, value: ORDERING_BY_LG_TO_SM},
+   {label: ORDERING_BY_MOST_RECENT, value: ORDERING_BY_MOST_RECENT},
+   {label: ORDERING_BY_LEAST_RECENT, value: ORDERING_BY_LEAST_RECENT},
+   {label: ORDERING_BY_CREATED_FIRST, value: ORDERING_BY_CREATED_FIRST},
+   {label: ORDERING_BY_CREATED_LAST, value: ORDERING_BY_CREATED_LAST},
+   {label: ORDERING_BY_ORBITAL_HIGH_TO_LOW, value: ORDERING_BY_ORBITAL_HIGH_TO_LOW},
+   {label: ORDERING_BY_ORBITAL_LOW_TO_HIGH, value: ORDERING_BY_ORBITAL_LOW_TO_HIGH},
+]
+
 export class InspectorBailiwicks extends Component {
 
    static propTypes = {
@@ -52,9 +73,15 @@ export class InspectorBailiwicks extends Component {
       canvas_bounds: {},
       visible_bailiwicks: [],
       list_all: true,
+      ordering: ORDERING_BY_SM_TO_LG
    }
 
    componentDidMount() {
+      let ordering = localStorage.getItem(LS_BAILIWICK_ORDERING_KEY)
+      if (!ordering) {
+         ordering = ORDERING_BY_ORBITAL_LOW_TO_HIGH
+      }
+      this.setState({ordering})
       this.fetch_bailiwicks()
    }
 
@@ -163,12 +190,12 @@ export class InspectorBailiwicks extends Component {
             }
             let perimeter = 0
             for (let i = -1; i <= 1; i++) {
-               const x_per = leftmost + increment * (img_x + i)
+               // const x_per = leftmost + increment * (img_x + i)
                for (let j = -1; j <= 1; j++) {
                   if (!i && !j) {
                      continue;
                   }
-                  const y_per = topmost - increment * (img_y + j)
+                  // const y_per = topmost - increment * (img_y + j)
                   let [pat, iter] = canvas_buffer[img_x + i][img_y + j]
                   perimeter += iter
                }
@@ -239,8 +266,44 @@ export class InspectorBailiwicks extends Component {
       this.save_bailiwick(core_point, octave_point, pattern, bailiwick.id)
    }
 
+   on_change_ordering = (ordering) => {
+      const {all_bailiwicks} = this.state
+      const sorted = all_bailiwicks.sort((a, b) => {
+         switch (ordering) {
+            case ORDERING_BY_LEAST_RECENT:
+              return a.updated_at > b.updated_at ? 1 : -1
+            case ORDERING_BY_MOST_RECENT:
+              return a.updated_at > b.updated_at ? -1 : 1
+            case ORDERING_BY_SM_TO_LG:
+              return a.magnitude > b.magnitude ? 1 : -1
+            case ORDERING_BY_LG_TO_SM:
+              return a.magnitude > b.magnitude ? -1 : 1
+            case ORDERING_BY_CREATED_FIRST:
+              return a.id > b.id ? 1 : -1
+            case ORDERING_BY_CREATED_LAST:
+              return a.id > b.id ? -1 : 1
+            case ORDERING_BY_ORBITAL_HIGH_TO_LOW:
+               if (a.pattern === b.pattern) {
+                  return a.magnitude > b.magnitude ? 1 : -1
+               }
+              return a.pattern > b.pattern ? -1 : 1
+            default:
+            case ORDERING_BY_ORBITAL_LOW_TO_HIGH:
+               if (a.pattern === b.pattern) {
+                  return a.magnitude > b.magnitude ? -1 : 1
+               }
+              return a.pattern > b.pattern ? 1 : -1
+         }
+      })
+      localStorage.setItem(LS_BAILIWICK_ORDERING_KEY, ordering)
+      this.setState({
+         ordering,
+         all_bailiwicks: sorted
+      })
+   }
+
    render() {
-      const {visible_bailiwicks, all_bailiwicks, list_all} = this.state
+      const {visible_bailiwicks, all_bailiwicks, list_all, ordering} = this.state
       const {in_wait, width_px} = this.props
       const add_bailiwick = visible_bailiwicks.length !== 0 ? '' : <CoolStyles.LinkSpan
          onClick={this.add_bailiwick}>
@@ -258,11 +321,17 @@ export class InspectorBailiwicks extends Component {
          onClick={e => this.refine_bailiwick(bailiwicks_list[0])}>
          {'refine'}
       </CoolStyles.LinkSpan> : []
+      const sorting_options = <CoolSelect
+         options={ordering_options}
+         value={ordering}
+         on_change={e => this.on_change_ordering(e.target.value)}
+      />
       const controls = [
          add_bailiwick, <Spacer/>,
          list_all_link, <Spacer/>,
          refresh_link, <Spacer/>,
-         refine_link,
+         refine_link, <Spacer/>,
+         sorting_options
       ]
       return <ContentWrapper>
          <ControlsWrapper>
