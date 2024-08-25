@@ -216,18 +216,20 @@ export class InspectorCoverage extends Component {
       FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, [tile_center])
       const start = performance.now()
       FractoTileGenerate.begin(tile, (history, tile_points) => {
-         // console.log("history, tile_points", history, tile_points)
+         console.log("history, tile_points", history, tile_points)
          const end = performance.now()
-         FractoIncrementalRender.tile_to_canvas(
-            ctx,
-            tile,
-            focal_point,
-            scope,
-            1.0,
-            INSPECTOR_SIZE_PX,
-            INSPECTOR_SIZE_PX,
-            tile_points,
-            canvas_buffer)
+         if (tile_points) {
+            FractoIncrementalRender.tile_to_canvas(
+               ctx,
+               tile,
+               focal_point,
+               scope,
+               1.0,
+               INSPECTOR_SIZE_PX,
+               INSPECTOR_SIZE_PX,
+               tile_points,
+               canvas_buffer)
+         }
          const history_item = FractoTileRunHistory.format_history_item(tile, "coverage", history)
          history_item.elapsed = end - start
          all_history.push(history_item)
