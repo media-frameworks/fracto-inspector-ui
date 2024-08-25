@@ -213,7 +213,7 @@ export class InspectorCoverage extends Component {
          x: (tile.bounds.right + tile.bounds.left) / 2,
          y: (tile.bounds.top + tile.bounds.bottom) / 2,
       }
-      FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, [tile_center])
+      // FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, [tile_center])
       const start = performance.now()
       FractoTileGenerate.begin(tile, (history, tile_points) => {
          console.log("history, tile_points", history, tile_points)
