@@ -12,12 +12,22 @@ import FractoUtil from "../../fracto/common/FractoUtil";
 import FractoTileAutomate, {CONTEXT_SIZE_PX} from "../../fracto/common/tile/FractoTileAutomate";
 import FractoTileGenerate from "../../fracto/common/tile/FractoTileGenerate";
 import FractoTileRunHistory from "../../fracto/common/tile/FractoTileRunHistory"
+import FractoCanvasOverlay from "../../fracto/common/ui/FractoCanvasOverlay";
+import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementalRender"
 
 const SectionWrapper = styled(CoolStyles.Block)`
    ${CoolStyles.align_center}
    padding: 0.5rem;
    background-color: white;
+   margin-left: 1rem;
 `
+
+const SummaryWrapper = styled(CoolStyles.Block)`
+   ${CoolStyles.italic}
+   font-size: 1.25rem;
+   margin-left: 1rem;
+   color: #888888;
+`;
 
 const COVERAGE_TABLE_COLUMNS = [
    {
@@ -38,7 +48,7 @@ const COVERAGE_TABLE_COLUMNS = [
       id: "can_do",
       label: "can do",
       type: CELL_TYPE_NUMBER,
-      width_px: 40,
+      width_px: 120,
       align: CELL_ALIGN_CENTER
    },
 ]
@@ -50,6 +60,7 @@ export class InspectorCoverage extends Component {
       focal_point: PropTypes.object.isRequired,
       scope: PropTypes.number.isRequired,
       ctx: PropTypes.object.isRequired,
+      canvas_buffer: PropTypes.array.isRequired,
    }
 
    static defaultProps = {}
@@ -61,6 +72,8 @@ export class InspectorCoverage extends Component {
       enhance_tiles: [],
       enhance_level: 0,
       loading_short_codes: true,
+      run_start: null,
+      run_tile_index_start: 0
    }
 
    static all_short_codes = null
@@ -118,7 +131,9 @@ export class InspectorCoverage extends Component {
       console.log('set_enhanced', enhance_tiles, level)
       this.setState({
          enhance_tiles: enhance_tiles,
-         enhance_level: level
+         enhance_level: level,
+         tile_index: 0,
+         all_history: [],
       })
    }
 
@@ -192,11 +207,27 @@ export class InspectorCoverage extends Component {
 
    enhance = (tile, cb) => {
       const {all_history} = this.state
+      const {ctx, scope, focal_point, canvas_buffer} = this.props
       // console.log('enhance', tile)
+      const tile_center = {
+         x: (tile.bounds.right + tile.bounds.left) / 2,
+         y: (tile.bounds.top + tile.bounds.bottom) / 2,
+      }
+      FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, [tile_center])
       const start = performance.now()
       FractoTileGenerate.begin(tile, (history, tile_points) => {
          // console.log("history, tile_points", history, tile_points)
          const end = performance.now()
+         FractoIncrementalRender.tile_to_canvas(
+            ctx,
+            tile,
+            focal_point,
+            scope,
+            1.0,
+            INSPECTOR_SIZE_PX,
+            INSPECTOR_SIZE_PX,
+            tile_points,
+            canvas_buffer)
          const history_item = FractoTileRunHistory.format_history_item(tile, "coverage", history)
          history_item.elapsed = end - start
          all_history.push(history_item)
@@ -217,6 +248,29 @@ export class InspectorCoverage extends Component {
          tile={tile}
          width_px={width_px}
          tile_data={tile_points}/>
+   }
+
+   render_run_history_summary = () => {
+      const {all_history, tile_index, run_tile_index_start, run_start} = this.state;
+      const timer_now = performance.now()
+      const tiles_per_minute = 60 * 1000 * (tile_index - run_tile_index_start) / (timer_now - run_start)
+      const rounded_tiles_per_minute = Math.round(100 * tiles_per_minute) / 100
+      return <SummaryWrapper>
+         {!all_history.length ? '' : `${all_history.length} results this run (${rounded_tiles_per_minute} tiles/min)`}
+      </SummaryWrapper>
+   }
+
+   on_automate = (automate) => {
+      const {tile_index} = this.state
+      if (automate) {
+         console.log("starting run timer")
+         const run_start = performance.now()
+         this.setState({
+            run_start: run_start,
+            run_tile_index_start: tile_index,
+            all_history: [],
+         })
+      }
    }
 
    render() {
@@ -240,13 +294,16 @@ export class InspectorCoverage extends Component {
             on_tile_select={this.on_select_tile}
             tile_size_px={CONTEXT_SIZE_PX}
             on_render_tile={this.on_render_tile}
-            all_tiles={sorted}/>
+            all_tiles={sorted}
+            on_automate={this.on_automate}
+         />
       }
       const history = all_history.length ? <FractoTileRunHistory
          width_px={width_px}
          history_items={all_history}
       /> : []
-      return [coverage, automate, history].map((item, i) => {
+      const history_summary = this.render_run_history_summary()
+      return [coverage, automate, history_summary, history].map((item, i) => {
          return <SectionWrapper key={`section-${i}`}>{item}</SectionWrapper>
       })
    }

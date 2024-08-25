@@ -70,10 +70,14 @@ export class PageMain extends Component {
    static inspector_ref = React.createRef()
 
    componentDidMount() {
-      // const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
-      // if (recent_focal_point) {
-      //    this.set_focal_point(JSON.parse(recent_focal_point))
-      // }
+      const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
+      if (recent_focal_point) {
+         this.set_focal_point(JSON.parse(recent_focal_point))
+      }
+      const recent_scope = localStorage.getItem(STORAGE_SCOPE_KEY)
+      if (recent_scope) {
+         this.set_scope(parseFloat(recent_scope))
+      }
       console.log('page ready')
    }
 

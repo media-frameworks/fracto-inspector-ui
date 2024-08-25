@@ -91,6 +91,7 @@ export class InspectorTabs extends Component {
                width_px={width_px}
                focal_point={focal_point}
                scope={scope}
+               canvas_buffer={canvas_buffer}
                ctx={ctx}
             />
             break;
