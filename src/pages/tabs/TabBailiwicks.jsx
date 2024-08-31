@@ -53,7 +53,7 @@ const ordering_options = [
    {label: ORDERING_BY_ORBITAL_LOW_TO_HIGH, value: ORDERING_BY_ORBITAL_LOW_TO_HIGH},
 ]
 
-export class InspectorBailiwicks extends Component {
+export class TabBailiwicks extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
@@ -348,4 +348,4 @@ export class InspectorBailiwicks extends Component {
    }
 }
 
-export default InspectorBailiwicks;
+export default TabBailiwicks;

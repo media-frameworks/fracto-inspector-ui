@@ -7,18 +7,16 @@ import {CoolStyles} from "common/ui/CoolImports";
 import {get_ideal_level} from "fracto/common/data/FractoData";
 import FractoIncrementalRender from "fracto/common/render/FractoIncrementalRender";
 
-import {OPTION_SHOW_BAILIWICKS} from "../PageMain";
 import {INSPECTOR_SIZE_PX} from "../constants";
 
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
    height: 99%;
 `;
 
-export class InspectorRaster extends Component {
+export class MainRaster extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
-      options: PropTypes.object.isRequired,
       focal_point: PropTypes.object.isRequired,
       scope: PropTypes.number.isRequired,
       on_focal_point_change: PropTypes.func.isRequired,
@@ -26,11 +24,6 @@ export class InspectorRaster extends Component {
       on_hover: PropTypes.func.isRequired,
       disabled: PropTypes.bool.isRequired,
    }
-
-   state = {
-      all_bailiwicks: [],
-      canvas_buffer: []
-   };
 
    static inspector_ref = React.createRef()
 
@@ -40,7 +33,7 @@ export class InspectorRaster extends Component {
          left: focal_point.x - scope / 2,
          top: focal_point.y + scope / 2,
       }
-      const inspector_wrapper = InspectorRaster.inspector_ref.current
+      const inspector_wrapper = MainRaster.inspector_ref.current
       if (!inspector_wrapper) {
          return {}
       }
@@ -67,7 +60,7 @@ export class InspectorRaster extends Component {
       if (disabled) {
          return
       }
-      const container_bounds = InspectorRaster.inspector_ref.current.getBoundingClientRect()
+      const container_bounds = MainRaster.inspector_ref.current.getBoundingClientRect()
       const img_x = Math.floor(e.clientX - container_bounds.left)
       const img_y = Math.floor(e.clientY - container_bounds.top)
       const leftmost = focal_point.x - scope / 2
@@ -79,46 +72,11 @@ export class InspectorRaster extends Component {
       })
    }
 
-   on_plan_complete = (canvas_buffer, ctx) => {
-      const {on_plan_complete} =this.props
-      on_plan_complete(canvas_buffer, ctx)
-   }
-
    render() {
-      const {all_bailiwicks} = this.state
-      const {focal_point, scope, options, disabled} = this.props
-      const ideal_level = get_ideal_level(INSPECTOR_SIZE_PX, scope, 1.5)
-      const visible_bailiwicks = !options[OPTION_SHOW_BAILIWICKS] ? [] : all_bailiwicks.filter(bailiwick => {
-         const core_point = JSON.parse(bailiwick.core_point)
-         if (core_point.x < focal_point.x - scope / 2) {
-            return false;
-         }
-         if (core_point.x > focal_point.x + scope / 2) {
-            return false;
-         }
-         if (core_point.y < focal_point.y - scope / 2) {
-            return false;
-         }
-         if (core_point.y > focal_point.y + scope / 2) {
-            return false;
-         }
-         return true;
-      })
-      // console.log ("visible_bailiwicks", visible_bailiwicks)
-      const highlight_points = visible_bailiwicks.map(bailiwick => {
-         let highlight_data = JSON.parse(bailiwick.core_point)
-         highlight_data.label = `${bailiwick.name} (#${bailiwick.free_ordinal})`
-         highlight_data.box_count = 3;
-         if (bailiwick.magnitude < scope / 80) {
-            highlight_data.box_count = 2;
-         }
-         if (bailiwick.magnitude < scope / 320) {
-            highlight_data.box_count = 1;
-         }
-         return highlight_data
-      })
+      const {focal_point, scope, disabled, on_plan_complete} = this.props
+      const ideal_level = get_ideal_level(INSPECTOR_SIZE_PX, scope, 2.5)
       return <InspectorWrapper
-         ref={InspectorRaster.inspector_ref}
+         ref={MainRaster.inspector_ref}
          onClick={this.on_click}
          onMouseMove={this.on_mousemove}
          onMouseLeave={this.on_mouseleave}>
@@ -128,13 +86,12 @@ export class InspectorRaster extends Component {
             scope={scope}
             focal_point={focal_point}
             level={ideal_level}
-            on_plan_complete={this.on_plan_complete}
-            highlight_points={highlight_points}
-            incremental_depth={2}
+            on_plan_complete={on_plan_complete}
+            incremental_depth={3}
             disabled={disabled}
          />
       </InspectorWrapper>
    }
 }
 
-export default InspectorRaster;
+export default MainRaster;

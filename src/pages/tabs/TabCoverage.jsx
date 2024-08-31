@@ -4,7 +4,7 @@ import styled from "styled-components";
 
 import {CoolStyles} from "common/ui/CoolImports";
 import FractoIndexedTiles from "fracto/common/data/FractoIndexedTiles";
-import CoolTable, {CELL_ALIGN_CENTER, CELL_TYPE_CALLBACK, CELL_TYPE_NUMBER} from "../../common/ui/CoolTable";
+import CoolTable, {CELL_ALIGN_CENTER, CELL_TYPE_NUMBER} from "../../common/ui/CoolTable";
 import {get_ideal_level} from "../../fracto/common/data/FractoData";
 import {INSPECTOR_SIZE_PX} from "../constants";
 import FractoTileRender from "../../fracto/common/tile/FractoTileRender";
@@ -12,7 +12,7 @@ import FractoUtil from "../../fracto/common/FractoUtil";
 import FractoTileAutomate, {CONTEXT_SIZE_PX} from "../../fracto/common/tile/FractoTileAutomate";
 import FractoTileGenerate from "../../fracto/common/tile/FractoTileGenerate";
 import FractoTileRunHistory from "../../fracto/common/tile/FractoTileRunHistory"
-import FractoCanvasOverlay from "../../fracto/common/ui/FractoCanvasOverlay";
+// import FractoCanvasOverlay from "../../fracto/common/ui/FractoCanvasOverlay";
 import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementalRender"
 
 const SectionWrapper = styled(CoolStyles.Block)`
@@ -53,14 +53,14 @@ const COVERAGE_TABLE_COLUMNS = [
    },
 ]
 
-export class InspectorCoverage extends Component {
+export class TabCoverage extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
       focal_point: PropTypes.object.isRequired,
       scope: PropTypes.number.isRequired,
-      ctx: PropTypes.object.isRequired,
-      canvas_buffer: PropTypes.array.isRequired,
+      on_focal_point_changed: PropTypes.func.isRequired,
+      on_scope_changed: PropTypes.func.isRequired,
    }
 
    static defaultProps = {}
@@ -79,16 +79,16 @@ export class InspectorCoverage extends Component {
    static all_short_codes = null
 
    componentDidMount() {
-      if (!InspectorCoverage.all_short_codes) {
-         InspectorCoverage.all_short_codes = []
+      if (!TabCoverage.all_short_codes) {
+         TabCoverage.all_short_codes = []
          for (let level = 0; level < 50; level++) {
-            InspectorCoverage.all_short_codes[level] = {}
+            TabCoverage.all_short_codes[level] = {}
          }
          FractoIndexedTiles.load_short_codes('indexed', short_codes => {
             this.setState({short_codes})
             short_codes.forEach(short_code => {
                const level = short_code.length
-               InspectorCoverage.all_short_codes[level][short_code] = true
+               TabCoverage.all_short_codes[level][short_code] = true
             })
             this.setState({loading_short_codes: false})
             this.detect_coverage()
@@ -164,16 +164,16 @@ export class InspectorCoverage extends Component {
          const short_code_2 = `${short_code}2`
          const short_code_3 = `${short_code}3`
          const level = short_code.length + 1
-         if (!InspectorCoverage.all_short_codes[level][short_code_0]) {
+         if (!TabCoverage.all_short_codes[level][short_code_0]) {
             can_do.push(short_code_0)
          }
-         if (!InspectorCoverage.all_short_codes[level][short_code_1]) {
+         if (!TabCoverage.all_short_codes[level][short_code_1]) {
             can_do.push(short_code_1)
          }
-         if (!InspectorCoverage.all_short_codes[level][short_code_2]) {
+         if (!TabCoverage.all_short_codes[level][short_code_2]) {
             can_do.push(short_code_2)
          }
-         if (!InspectorCoverage.all_short_codes[level][short_code_3]) {
+         if (!TabCoverage.all_short_codes[level][short_code_3]) {
             can_do.push(short_code_3)
          }
       })
@@ -209,10 +209,10 @@ export class InspectorCoverage extends Component {
       const {all_history} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
       // console.log('enhance', tile)
-      const tile_center = {
-         x: (tile.bounds.right + tile.bounds.left) / 2,
-         y: (tile.bounds.top + tile.bounds.bottom) / 2,
-      }
+      // const tile_center = {
+      //    x: (tile.bounds.right + tile.bounds.left) / 2,
+      //    y: (tile.bounds.top + tile.bounds.bottom) / 2,
+      // }
       // FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, [tile_center])
       const start = performance.now()
       FractoTileGenerate.begin(tile, (history, tile_points) => {
@@ -311,4 +311,4 @@ export class InspectorCoverage extends Component {
    }
 }
 
-export default InspectorCoverage;
+export default TabCoverage;

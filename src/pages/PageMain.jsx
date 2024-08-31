@@ -14,9 +14,9 @@ import AppPageMain from 'common/app/AppPageMain';
 import FractoRenderDetails from "fracto/common/ui/FractoRenderDetails"
 import FractoLevelSlider from "fracto/common/ui/FractoLevelSlider";
 
-import InspectorStrata from "./Inspector/InspectorStrata"
-import InspectorRaster from "./Inspector/InspectorRaster";
-import InspectorTabs from "./Inspector/InspectorTabs";
+import MainStrata from "./main/MainStrata"
+import MainRaster from "./main/MainRaster";
+import MainTabs from "./main/MainTabs";
 
 export const OPTION_SHOW_BAILIWICKS = "show_bailiwicks"
 
@@ -117,7 +117,7 @@ export class PageMain extends Component {
       return <InspectorWrapper
          key={'inspector-raster'}
          ref={PageMain.inspector_ref}>
-         <InspectorRaster
+         <MainRaster
             width_px={INSPECTOR_SIZE_PX}
             focal_point={focal_point}
             scope={scope}
@@ -166,7 +166,7 @@ export class PageMain extends Component {
       } = this.state;
       const {app_name} = this.props;
       const left_side = [
-         <InspectorStrata
+         <MainStrata
             key={'strata-pane'}
             width_px={left_width}
             scope={scope}
@@ -187,7 +187,7 @@ export class PageMain extends Component {
             canvas_buffer={canvas_buffer}
          />
       </DetailsWrapper>
-      const inspector_tabs = <InspectorTabs
+      const inspector_tabs = <MainTabs
          width_px={details_width_px - INSPECTOR_PADDING_PX * 2}
          scope={scope}
          focal_point={focal_point}
@@ -197,7 +197,6 @@ export class PageMain extends Component {
          ctx={ctx}
          update_counter={update_counter}
          in_wait={!inspector_ready}
-         on_navlock_changed={this.set_navlock_changed}
          click_point={focal_point}
          cursor_point={in_hover ? hover_point : null}
       />

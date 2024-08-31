@@ -9,7 +9,7 @@ const ContentWrapper = styled(CoolStyles.Block)`
    background-color: white;
 `
 
-export class InspectorHarvest extends Component {
+export class TabTemplate extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
@@ -39,4 +39,4 @@ export class InspectorHarvest extends Component {
    }
 }
 
-export default InspectorHarvest;
+export default TabTemplate;

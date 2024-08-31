@@ -32,7 +32,7 @@ const CoolLink = styled(CoolStyles.InlineBlock)`
    }
 `
 
-export class InspectorBurrows extends Component {
+export class TabBurrows extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
@@ -60,7 +60,7 @@ export class InspectorBurrows extends Component {
             burrow_id: burrow_id,
          })
          const burrow = all_burrows.find(burrow => burrow.id === burrow_id)
-         console.log("burrow_id", burrow_id)
+         console.log("all_burrows", all_burrows)
          setTimeout(() => {
             const focal_point = JSON.parse(burrow.focal_point)
             const scope = burrow.scope
@@ -77,12 +77,12 @@ export class InspectorBurrows extends Component {
          burrow_id: id,
       })
       const burrow = all_burrows.find(burrow => burrow.id === id)
-      console.log("select_burrow", id, burrow)
       if (!burrow) {
          return;
       }
       const focal_point = JSON.parse(burrow.focal_point)
       const scope = burrow.scope
+      console.log("select_burrow focal_point, scope", focal_point, scope)
       on_focal_point_changed(focal_point)
       on_scope_changed(scope)
       localStorage.setItem(SELECTED_BURROW_KEY, `${id}`)
@@ -117,4 +117,4 @@ export class InspectorBurrows extends Component {
    }
 }
 
-export default InspectorBurrows;
+export default TabBurrows;

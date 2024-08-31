@@ -6,30 +6,34 @@ import {CoolTabs} from "../../common/ui/CoolImports";
 
 import FractoOrbitalsList from "fracto/common/ui/FractoOrbitalsList";
 
-import InspectorBailiwicks from "./InspectorBailiwicks"
-import InspectorCoverage from "./InspectorCoverage"
-import InspectorHarvest from "./InspectorHarvest";
-import InspectorTest from "./InspectorTest";
+import TabBailiwicks from "../tabs/TabBailiwicks"
+import TabCoverage from "../tabs/TabCoverage"
+import TabTransit from "../tabs/TabTransit";
+import TabPatterns from "../tabs/TabPatterns";
+import TabBurrows from "../tabs/TabBurrows";
 
+const TAB_LABEL_TRANSIT = "transit";
 const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_COVERAGE = "coverage";
-const TAB_LABEL_HARVEST = "harvest";
-const TAB_LABEL_TEST = "patterns";
+const TAB_LABEL_PATTERNS = "patterns";
+const TAB_LABEL_BURROWS = "burrows";
 const TABS_LIST = [
-   TAB_LABEL_HARVEST,
-   TAB_LABEL_COVERAGE,
+   TAB_LABEL_TRANSIT,
    TAB_LABEL_ORBITALS,
+   TAB_LABEL_COVERAGE,
+   TAB_LABEL_PATTERNS,
    TAB_LABEL_BAILIWICKS,
-   TAB_LABEL_TEST,
+   TAB_LABEL_BURROWS,
 ]
-const TAB_INDEX_HARVEST = 0
-const TAB_INDEX_COVERAGE = 1
-const TAB_INDEX_ORBITALS = 2
-const TAB_INDEX_BAILIWICKS = 3
-const TAB_INDEX_TEST = 4
+const TAB_INDEX_TRANSIT = 0
+const TAB_INDEX_ORBITALS = 1
+const TAB_INDEX_COVERAGE = 2
+const TAB_INDEX_PATTERNS = 3
+const TAB_INDEX_BAILIWICKS = 4
+const TAB_INDEX_BURROWS = 5
 
-export class InspectorTabs extends Component {
+export class MainTabs extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
@@ -41,7 +45,6 @@ export class InspectorTabs extends Component {
       in_wait: PropTypes.bool.isRequired,
       canvas_buffer: PropTypes.array.isRequired,
       ctx: PropTypes.object.isRequired,
-      on_navlock_changed: PropTypes.func.isRequired,
       click_point: PropTypes.object.isRequired,
       cursor_point: PropTypes.object,
    }
@@ -57,17 +60,41 @@ export class InspectorTabs extends Component {
 
    render() {
       const {tab_index} = this.state
-      const {on_navlock_changed, click_point, cursor_point} = this.props
+      const {click_point, cursor_point} = this.props
       const {
-         in_wait,
-         focal_point, scope,
+         in_wait, focal_point, scope,
          width_px, canvas_buffer, ctx, update_counter,
          on_focal_point_changed, on_scope_changed,
       } = this.props
       let content = `you have selected ${tab_index}`
       switch (tab_index) {
+         case TAB_INDEX_ORBITALS:
+            content = canvas_buffer ? <FractoOrbitalsList
+               width_px={width_px}
+               canvas_buffer={canvas_buffer}
+               update_counter={update_counter}
+            /> : []
+            break;
+         case TAB_INDEX_COVERAGE:
+            content = <TabCoverage
+               width_px={width_px}
+               focal_point={focal_point}
+               scope={scope}
+               canvas_buffer={canvas_buffer}
+               ctx={ctx}
+            />
+            break;
+         case TAB_INDEX_PATTERNS:
+            content = <TabPatterns
+               width_px={width_px}
+               focal_point={focal_point}
+               scope={scope}
+               click_point={click_point}
+               cursor_point={cursor_point}
+            />
+            break;
          case TAB_INDEX_BAILIWICKS:
-            content = <InspectorBailiwicks
+            content = <TabBailiwicks
                width_px={width_px}
                focal_point={focal_point}
                scope={scope}
@@ -79,38 +106,21 @@ export class InspectorTabs extends Component {
                in_wait={in_wait}
             />
             break;
-         case TAB_INDEX_ORBITALS:
-            content = canvas_buffer ? <FractoOrbitalsList
+         case TAB_INDEX_BURROWS:
+            content = <TabBurrows
                width_px={width_px}
-               canvas_buffer={canvas_buffer}
-               update_counter={update_counter}
-            /> : []
-            break;
-         case TAB_INDEX_COVERAGE:
-            content = <InspectorCoverage
-               width_px={width_px}
-               focal_point={focal_point}
-               scope={scope}
-               canvas_buffer={canvas_buffer}
-               ctx={ctx}
+               on_focal_point_changed={on_focal_point_changed}
+               on_scope_changed={on_scope_changed}
             />
             break;
-         case TAB_INDEX_HARVEST:
-            content = <InspectorHarvest
+         case TAB_INDEX_TRANSIT:
+            content = <TabTransit
                width_px={width_px}
                focal_point={focal_point}
                scope={scope}
                on_focal_point_changed={on_focal_point_changed}
                on_scope_changed={on_scope_changed}
-            />
-            break;
-         case TAB_INDEX_TEST:
-            content = <InspectorTest
-               width_px={width_px}
-               focal_point={focal_point}
-               scope={scope}
-               click_point={click_point}
-               cursor_point={cursor_point}
+               in_wait={in_wait}
             />
             break;
          default:
@@ -131,4 +141,4 @@ export class InspectorTabs extends Component {
 
 }
 
-export default InspectorTabs
+export default MainTabs

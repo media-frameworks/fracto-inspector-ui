@@ -51,7 +51,7 @@ const DeleteButton = styled(CoolStyles.InlineBlock)`
    }
 `
 
-export class InspectorStrata extends Component {
+export class MainStrata extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
@@ -264,4 +264,4 @@ export class InspectorStrata extends Component {
    }
 }
 
-export default InspectorStrata;
+export default MainStrata;
