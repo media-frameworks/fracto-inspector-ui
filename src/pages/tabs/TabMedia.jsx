@@ -9,12 +9,12 @@ import FractoScopeTransit from "fracto/common/ui/FractoScopeTransit";
 const ContentWrapper = styled(CoolStyles.Block)`
    padding: 0.5rem;
    background-color: white;
-   text-align: center;
+   text-align: left;
 `
 
-const TRANSIT_SHRINKAGE = 0.95
+const TRANSIT_SHRINKAGE = 0.50
 
-export class TabTransit extends Component {
+export class TabMedia extends Component {
 
    static propTypes = {
       width_px: PropTypes.number.isRequired,
@@ -37,6 +37,7 @@ export class TabTransit extends Component {
       return <ContentWrapper>
          <FractoFocalTransit
             width_px={focal_transit_width_px * TRANSIT_SHRINKAGE}
+            scope={scope}
             focal_point={focal_point}
             on_focal_point_changed={on_focal_point_changed}
             in_wait={in_wait}
@@ -52,4 +53,4 @@ export class TabTransit extends Component {
    }
 }
 
-export default TabTransit;
+export default TabMedia;

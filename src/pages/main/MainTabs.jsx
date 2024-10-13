@@ -8,30 +8,34 @@ import FractoOrbitalsList from "fracto/common/ui/FractoOrbitalsList";
 
 import TabBailiwicks from "../tabs/TabBailiwicks"
 import TabCoverage from "../tabs/TabCoverage"
-import TabTransit from "../tabs/TabTransit";
+import TabMedia from "../tabs/TabMedia";
 import TabPatterns from "../tabs/TabPatterns";
 import TabBurrows from "../tabs/TabBurrows";
+import TabCache from "../tabs/TabCache";
 
-const TAB_LABEL_TRANSIT = "transit";
+const TAB_LABEL_MEDIA = "media";
 const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_COVERAGE = "coverage";
 const TAB_LABEL_PATTERNS = "patterns";
 const TAB_LABEL_BURROWS = "burrows";
+const TAB_LABEL_CACHE = "cache";
 const TABS_LIST = [
-   TAB_LABEL_TRANSIT,
    TAB_LABEL_ORBITALS,
    TAB_LABEL_COVERAGE,
    TAB_LABEL_PATTERNS,
    TAB_LABEL_BAILIWICKS,
    TAB_LABEL_BURROWS,
+   TAB_LABEL_MEDIA,
+   TAB_LABEL_CACHE,
 ]
-const TAB_INDEX_TRANSIT = 0
-const TAB_INDEX_ORBITALS = 1
-const TAB_INDEX_COVERAGE = 2
-const TAB_INDEX_PATTERNS = 3
-const TAB_INDEX_BAILIWICKS = 4
-const TAB_INDEX_BURROWS = 5
+const TAB_INDEX_ORBITALS = 0
+const TAB_INDEX_COVERAGE = 1
+const TAB_INDEX_PATTERNS = 2
+const TAB_INDEX_BAILIWICKS = 3
+const TAB_INDEX_BURROWS = 4
+const TAB_INDEX_MEDIA = 5
+const TAB_INDEX_CACHE = 6
 
 export class MainTabs extends Component {
 
@@ -47,6 +51,7 @@ export class MainTabs extends Component {
       ctx: PropTypes.object.isRequired,
       click_point: PropTypes.object.isRequired,
       cursor_point: PropTypes.object,
+      on_level_changed: PropTypes.func.isRequired,
    }
 
    static defaultProps = {
@@ -60,11 +65,11 @@ export class MainTabs extends Component {
 
    render() {
       const {tab_index} = this.state
-      const {click_point, cursor_point} = this.props
+      const {click_point, cursor_point, selected_level} = this.props
       const {
          in_wait, focal_point, scope,
          width_px, canvas_buffer, ctx, update_counter,
-         on_focal_point_changed, on_scope_changed,
+         on_focal_point_changed, on_scope_changed, on_level_changed
       } = this.props
       let content = `you have selected ${tab_index}`
       switch (tab_index) {
@@ -81,6 +86,10 @@ export class MainTabs extends Component {
                focal_point={focal_point}
                scope={scope}
                canvas_buffer={canvas_buffer}
+               on_focal_point_changed={on_focal_point_changed}
+               on_scope_changed={on_scope_changed}
+               on_level_selected={on_level_changed}
+               selected_level={selected_level}
                ctx={ctx}
             />
             break;
@@ -113,8 +122,15 @@ export class MainTabs extends Component {
                on_scope_changed={on_scope_changed}
             />
             break;
-         case TAB_INDEX_TRANSIT:
-            content = <TabTransit
+         case TAB_INDEX_CACHE:
+            content = <TabCache
+               width_px={width_px}
+               on_focal_point_changed={on_focal_point_changed}
+               on_scope_changed={on_scope_changed}
+            />
+            break;
+         case TAB_INDEX_MEDIA:
+            content = <TabMedia
                width_px={width_px}
                focal_point={focal_point}
                scope={scope}

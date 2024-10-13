@@ -7,6 +7,7 @@ import BailiwickData from "fracto/common/feature/BailiwickData";
 import BailiwickList from "fracto/common/ui/BailiwickList";
 import FractoCanvasOverlay from "fracto/common/ui/FractoCanvasOverlay";
 import FractoUtil from "fracto/common/FractoUtil";
+import {INSPECTOR_SIZE_PX} from "../constants";
 
 const SELECTED_BAILIWICK_KEY = "selected_bailiwick";
 const LS_BAILIWICK_ORDERING_KEY = 'ls_bailiwick_ordering_key'
@@ -73,7 +74,9 @@ export class TabBailiwicks extends Component {
       canvas_bounds: {},
       visible_bailiwicks: [],
       list_all: true,
-      ordering: ORDERING_BY_SM_TO_LG
+      ordering: ORDERING_BY_MOST_RECENT,
+      in_crawl: false,
+      select_index: 0
    }
 
    componentDidMount() {
@@ -147,13 +150,16 @@ export class TabBailiwicks extends Component {
       })
    }
 
-   select_bailiwick = (bailiwick) => {
-      const {selected_nodes} = this.state
+   select_bailiwick = (bailiwick, select_index) => {
+      // const {selected_nodes} = this.state
       const {on_focal_point_changed, on_scope_changed, in_wait} = this.props
-      if (in_wait && selected_nodes.length) {
-         return;
-      }
-      this.setState({bailiwick: bailiwick,})
+      // if (in_wait) {
+      //    return;
+      // }
+      this.setState({
+         bailiwick: bailiwick,
+         select_index: select_index
+      })
       const display_settings = JSON.parse(bailiwick.display_settings)
       on_focal_point_changed(display_settings.focal_point)
       on_scope_changed(display_settings.scope)
@@ -266,33 +272,110 @@ export class TabBailiwicks extends Component {
       this.save_bailiwick(core_point, octave_point, pattern, bailiwick.id)
    }
 
+   maximize_bailiwick = (bailiwick) => {
+      const {scope, focal_point, on_scope_changed, on_focal_point_changed, canvas_buffer} = this.props
+      const display_settings = JSON.parse(bailiwick.display_settings)
+      const increment = scope / INSPECTOR_SIZE_PX
+      const image_leftmost = focal_point.x - scope / 2
+      const focal_image_x = Math.floor((display_settings.focal_point.x - image_leftmost) / increment)
+      let leftmost_bailiwick = display_settings.focal_point.x
+      for (let margin_left = focal_image_x; margin_left > 0; margin_left--) {
+         let empty_column = true
+         leftmost_bailiwick -= increment
+         for (let img_y = 0; img_y < INSPECTOR_SIZE_PX; img_y++) {
+            const [pattern, increment] = canvas_buffer[margin_left][img_y]
+            if (pattern) {
+               empty_column = false
+               break;
+            }
+         }
+         if (empty_column) {
+            break;
+         }
+      }
+      let rightmost_bailiwick = display_settings.focal_point.x
+      for (let margin_right = focal_image_x; margin_right < INSPECTOR_SIZE_PX; margin_right++) {
+         let empty_column = true
+         rightmost_bailiwick += increment
+         for (let img_y = 0; img_y < INSPECTOR_SIZE_PX; img_y++) {
+            const [pattern, increment] = canvas_buffer[margin_right][img_y]
+            if (pattern) {
+               empty_column = false
+               break;
+            }
+         }
+         if (empty_column) {
+            break;
+         }
+      }
+      const image_topmost = focal_point.y + scope / 2
+      const focal_image_y = Math.floor((image_topmost - display_settings.focal_point.y) / increment)
+      let topmost_bailiwick = display_settings.focal_point.y
+      for (let margin_top = focal_image_y; margin_top > 0; margin_top--) {
+         let empty_row = true
+         topmost_bailiwick += increment
+         for (let img_x = 0; img_x < INSPECTOR_SIZE_PX; img_x++) {
+            const [pattern, increment] = canvas_buffer[img_x][margin_top]
+            if (pattern) {
+               empty_row = false
+               break;
+            }
+         }
+         if (empty_row) {
+            break;
+         }
+      }
+      let bottommost_bailiwick = display_settings.focal_point.y
+      for (let margin_bottom = focal_image_y; margin_bottom < INSPECTOR_SIZE_PX; margin_bottom++) {
+         let empty_row = true
+         bottommost_bailiwick -= increment
+         for (let img_x = 0; img_x < INSPECTOR_SIZE_PX; img_x++) {
+            const [pattern, increment] = canvas_buffer[img_x][margin_bottom]
+            if (pattern) {
+               empty_row = false
+               break;
+            }
+         }
+         if (empty_row) {
+            break;
+         }
+      }
+      const new_width = rightmost_bailiwick - leftmost_bailiwick
+      const new_height = topmost_bailiwick - bottommost_bailiwick
+      on_scope_changed(new_width > new_height ? new_width : new_height)
+      on_focal_point_changed({
+         x: leftmost_bailiwick + new_width / 2,
+         y: topmost_bailiwick - new_height / 2
+      })
+   }
+
    on_change_ordering = (ordering) => {
       const {all_bailiwicks} = this.state
       const sorted = all_bailiwicks.sort((a, b) => {
          switch (ordering) {
             case ORDERING_BY_LEAST_RECENT:
-              return a.updated_at > b.updated_at ? 1 : -1
+               return a.updated_at > b.updated_at ? 1 : -1
             case ORDERING_BY_MOST_RECENT:
-              return a.updated_at > b.updated_at ? -1 : 1
+               return a.updated_at > b.updated_at ? -1 : 1
             case ORDERING_BY_SM_TO_LG:
-              return a.magnitude > b.magnitude ? 1 : -1
+               return a.magnitude > b.magnitude ? 1 : -1
             case ORDERING_BY_LG_TO_SM:
-              return a.magnitude > b.magnitude ? -1 : 1
+               return a.magnitude > b.magnitude ? -1 : 1
             case ORDERING_BY_CREATED_FIRST:
-              return a.id > b.id ? 1 : -1
+               return a.id > b.id ? 1 : -1
             case ORDERING_BY_CREATED_LAST:
-              return a.id > b.id ? -1 : 1
+               return a.id > b.id ? -1 : 1
             case ORDERING_BY_ORBITAL_HIGH_TO_LOW:
                if (a.pattern === b.pattern) {
                   return a.magnitude > b.magnitude ? 1 : -1
                }
-              return a.pattern > b.pattern ? -1 : 1
+               return a.pattern > b.pattern ? -1 : 1
             default:
             case ORDERING_BY_ORBITAL_LOW_TO_HIGH:
                if (a.pattern === b.pattern) {
                   return a.magnitude > b.magnitude ? -1 : 1
                }
-              return a.pattern > b.pattern ? 1 : -1
+               return a.pattern > b.pattern ? 1 : -1
          }
       })
       localStorage.setItem(LS_BAILIWICK_ORDERING_KEY, ordering)
@@ -302,8 +385,35 @@ export class TabBailiwicks extends Component {
       })
    }
 
+   do_crawl = (index) => {
+      const {all_bailiwicks} = this.state
+      if (index >= all_bailiwicks.length) {
+         console.log('done crawling', index, all_bailiwicks.length)
+         return;
+      }
+      console.log(`crawling index ${index}`)
+      const bailiwick = all_bailiwicks[index]
+      this.select_bailiwick(bailiwick, index)
+      setTimeout(() => {
+         this.do_crawl(index +1)
+      }, 20000)
+   }
+
+   crawl_bailiwicks = () => {
+      const {all_bailiwicks, in_crawl} = this.state
+      if (in_crawl) {
+         this.setState({in_crawl: false})
+         console.log('done crawling')
+         return
+      }
+      this.on_change_ordering(ORDERING_BY_MOST_RECENT)
+      setTimeout(() => {
+         this.do_crawl(140)
+      }, 5000)
+   }
+
    render() {
-      const {visible_bailiwicks, all_bailiwicks, list_all, ordering} = this.state
+      const {visible_bailiwicks, all_bailiwicks, list_all, ordering, select_index} = this.state
       const {in_wait, width_px} = this.props
       const add_bailiwick = visible_bailiwicks.length !== 0 ? '' : <CoolStyles.LinkSpan
          onClick={this.add_bailiwick}>
@@ -321,6 +431,14 @@ export class TabBailiwicks extends Component {
          onClick={e => this.refine_bailiwick(bailiwicks_list[0])}>
          {'refine'}
       </CoolStyles.LinkSpan> : []
+      const maximize_link = bailiwicks_list.length === 1 ? <CoolStyles.LinkSpan
+         onClick={e => this.maximize_bailiwick(bailiwicks_list[0])}>
+         {'maximize'}
+      </CoolStyles.LinkSpan> : []
+      const crawl_link = list_all ? <CoolStyles.LinkSpan
+         onClick={e => this.crawl_bailiwicks()}>
+         {'crawl'}
+      </CoolStyles.LinkSpan> : []
       const sorting_options = <CoolSelect
          options={ordering_options}
          value={ordering}
@@ -331,7 +449,9 @@ export class TabBailiwicks extends Component {
          list_all_link, <Spacer/>,
          refresh_link, <Spacer/>,
          refine_link, <Spacer/>,
-         sorting_options
+         maximize_link, <Spacer/>,
+         sorting_options, <Spacer/>,
+         crawl_link, <Spacer/>,
       ]
       return <ContentWrapper>
          <ControlsWrapper>
@@ -342,6 +462,7 @@ export class TabBailiwicks extends Component {
                bailiwick_list={bailiwicks_list}
                on_select={this.select_bailiwick}
                in_wait={in_wait}
+               selected_index={select_index}
             />
          </SelectWrapper>
       </ContentWrapper>

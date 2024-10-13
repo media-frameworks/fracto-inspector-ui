@@ -4,10 +4,8 @@ import styled from "styled-components";
 
 import {CoolStyles} from "common/ui/CoolImports";
 
-import {get_ideal_level} from "fracto/common/data/FractoData";
-import FractoIncrementalRender from "fracto/common/render/FractoIncrementalRender";
-
 import {INSPECTOR_SIZE_PX} from "../constants";
+import {FractoLayeredImage} from "../../fracto/common/render/FractoLayeredImage";
 
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
    height: 99%;
@@ -23,6 +21,8 @@ export class MainRaster extends Component {
       on_plan_complete: PropTypes.func.isRequired,
       on_hover: PropTypes.func.isRequired,
       disabled: PropTypes.bool.isRequired,
+      update_counter: PropTypes.number.isRequired,
+      filter_level: PropTypes.number.isRequired,
    }
 
    static inspector_ref = React.createRef()
@@ -73,22 +73,20 @@ export class MainRaster extends Component {
    }
 
    render() {
-      const {focal_point, scope, disabled, on_plan_complete} = this.props
-      const ideal_level = get_ideal_level(INSPECTOR_SIZE_PX, scope, 2.5)
+      const {focal_point, scope, disabled, on_plan_complete, update_counter, filter_level} = this.props
       return <InspectorWrapper
          ref={MainRaster.inspector_ref}
          onClick={this.on_click}
          onMouseMove={this.on_mousemove}
          onMouseLeave={this.on_mouseleave}>
-         <FractoIncrementalRender
-            key={'inspection_raster'}
+         <FractoLayeredImage
             width_px={INSPECTOR_SIZE_PX}
-            scope={scope}
             focal_point={focal_point}
-            level={ideal_level}
-            on_plan_complete={on_plan_complete}
-            incremental_depth={3}
+            scope={scope}
             disabled={disabled}
+            on_plan_complete={on_plan_complete}
+            update_counter={update_counter}
+            filter_level={filter_level}
          />
       </InspectorWrapper>
    }

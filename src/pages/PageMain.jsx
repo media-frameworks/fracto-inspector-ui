@@ -64,13 +64,16 @@ export class PageMain extends Component {
       options: {},
       highest_level: 0,
       effects_func: null,
-      click_point: {}
+      click_point: {},
+      filter_level: 0
    };
 
    static inspector_ref = React.createRef()
 
    componentDidMount() {
+      const {update_counter} = this.state
       const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
+      console.log('recent_focal_point', recent_focal_point)
       if (recent_focal_point) {
          this.set_focal_point(JSON.parse(recent_focal_point))
       }
@@ -112,57 +115,68 @@ export class PageMain extends Component {
       })
    }
 
-   render_inspection = (width_px) => {
-      const {focal_point, scope, options, effects_func, inspector_ready} = this.state
-      return <InspectorWrapper
-         key={'inspector-raster'}
-         ref={PageMain.inspector_ref}>
-         <MainRaster
-            width_px={INSPECTOR_SIZE_PX}
-            focal_point={focal_point}
-            scope={scope}
-            options={options}
-            effects_func={effects_func}
-            on_focal_point_change={this.set_focal_point}
-            on_hover={location => this.on_hover(location)}
-            on_plan_complete={this.on_plan_complete}
-            disabled={!inspector_ready}
-         />`
-      </InspectorWrapper>
-   }
-
    set_focal_point = (focal_point) => {
+      const {update_counter, inspector_ready} = this.state
+      if (!inspector_ready) {
+         return
+      }
       localStorage.setItem(STORAGE_FOCAL_POINT_KEY, JSON.stringify(focal_point))
       this.setState({
          focal_point: focal_point,
+         filter_level: 0,
          inspector_ready: false,
+         update_counter: update_counter + 1
       })
    }
 
    set_scope = (scope) => {
+      const {update_counter, inspector_ready} = this.state
+      if (!inspector_ready) {
+         return
+      }
       localStorage.setItem(STORAGE_SCOPE_KEY, `${scope}`)
       const level = Math.round(100 * (Math.log(32 / scope) / Math.log(2))) / 100
       console.log("scope", scope)
       this.setState({
          scope: scope,
+         filter_level: 0,
          highest_level: level,
          inspector_ready: false,
+         update_counter: update_counter + 1
       })
    }
 
    set_level = (level) => {
-      const scope = Math.pow(2, 5 - level)
+      const {update_counter, inspector_ready} = this.state
+      if (!inspector_ready) {
+         return
+      }
+      console.log("level", level)
       this.setState({
-         scope: scope,
+         filter_level: 0,
          highest_level: level,
          inspector_ready: false,
+         update_counter: update_counter + 1
+      })
+   }
+
+   set_filter_level = (filter_level) => {
+      const {inspector_ready, update_counter} = this.state
+      if (!inspector_ready) {
+         return
+      }
+      this.setState({
+         filter_level: filter_level,
+         inspector_ready: false,
+         update_counter: update_counter + 1
       })
    }
 
    render() {
       const {
          left_width, right_width, focal_point, inspector_ready, highest_level,
-         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx,
+         hover_point, scope, in_hover, update_counter, canvas_buffer, ctx, filter_level,
+         options, effects_func, s
       } = this.state;
       const {app_name} = this.props;
       const left_side = [
@@ -193,12 +207,14 @@ export class PageMain extends Component {
          focal_point={focal_point}
          on_scope_changed={this.set_scope}
          on_focal_point_changed={this.set_focal_point}
+         on_level_changed={this.set_filter_level}
          canvas_buffer={canvas_buffer}
          ctx={ctx}
          update_counter={update_counter}
          in_wait={!inspector_ready}
          click_point={focal_point}
          cursor_point={in_hover ? hover_point : null}
+         selected_level={filter_level}
       />
       const level_slider = <SliderWrapper
          key={'level-slider'}>
@@ -213,8 +229,25 @@ export class PageMain extends Component {
          width: `${details_width_px}px`,
          marginLeft: "0.5rem"
       }
+      const inspection = <InspectorWrapper
+         key={'inspector-raster'}
+         ref={PageMain.inspector_ref}>
+         <MainRaster
+            width_px={INSPECTOR_SIZE_PX}
+            focal_point={focal_point}
+            scope={scope}
+            options={options}
+            effects_func={effects_func}
+            on_focal_point_change={this.set_focal_point}
+            on_hover={location => this.on_hover(location)}
+            on_plan_complete={this.on_plan_complete}
+            update_counter={update_counter}
+            disabled={!inspector_ready}
+            filter_level={filter_level}
+         />`
+      </InspectorWrapper>
       const right_side = [
-         this.render_inspection(right_width),
+         inspection,
          level_slider,
          <CoolStyles.InlineBlock
             key={'fracto-details'}

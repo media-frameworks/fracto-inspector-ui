@@ -4,9 +4,8 @@ import styled from "styled-components";
 
 import {CoolStyles} from "common/ui/CoolImports";
 
-import {get_ideal_level} from "fracto/common/data/FractoData";
 import FractoAlterableOutline from "fracto/common/ui/FractoAlterableOutline";
-import FractoIncrementalRender from "fracto/common/render/FractoIncrementalRender";
+import {FractoLayeredImage} from "../../fracto/common/render/FractoLayeredImage";
 
 const SCROLL_WIDTH_PX = 20
 const INSPECTOR_PADDING_PX = 10
@@ -222,7 +221,6 @@ export class MainStrata extends Component {
             width: `${canvas_width}px`,
             height: `${canvas_width}px`,
          }
-         const ideal_level = get_ideal_level(canvas_width, canvas_scope) - 1
          const delete_button_style = {
             top: `${canvas_width * index + 15}px`,
             cursor: disabled ? 'default' : 'pointer'
@@ -238,11 +236,10 @@ export class MainStrata extends Component {
             ref={stratum.stratum_ref}
             onClick={e => this.on_click(e, index)}
             style={wrapper_style}>
-            <FractoIncrementalRender
+            <FractoLayeredImage
                width_px={canvas_width}
                scope={canvas_scope}
                focal_point={focal_point}
-               level={ideal_level > 1 ? ideal_level : 2}
                disabled={disabled}/>
             {delete_button}
          </ContextWrapper>
