@@ -54,7 +54,7 @@ export class PageMain extends Component {
       left_width: 200,
       right_width: 0,
       focal_point: {x: -0.75, y: 0.25},
-      scope: 2.5,
+      scope: 0,
       inspector_ready: false,
       hover_point: {x: 0, y: 0},
       in_hover: false,
@@ -71,7 +71,6 @@ export class PageMain extends Component {
    static inspector_ref = React.createRef()
 
    componentDidMount() {
-      const {update_counter} = this.state
       const recent_focal_point = localStorage.getItem(STORAGE_FOCAL_POINT_KEY)
       console.log('recent_focal_point', recent_focal_point)
       if (recent_focal_point) {
@@ -116,10 +115,7 @@ export class PageMain extends Component {
    }
 
    set_focal_point = (focal_point) => {
-      const {update_counter, inspector_ready} = this.state
-      // if (!inspector_ready) {
-      //    return
-      // }
+      const {update_counter} = this.state
       localStorage.setItem(STORAGE_FOCAL_POINT_KEY, JSON.stringify(focal_point))
       this.setState({
          focal_point: focal_point,
@@ -130,10 +126,7 @@ export class PageMain extends Component {
    }
 
    set_scope = (scope) => {
-      const {update_counter, inspector_ready} = this.state
-      // if (!inspector_ready) {
-      //    return
-      // }
+      const {update_counter} = this.state
       localStorage.setItem(STORAGE_SCOPE_KEY, `${scope}`)
       const level = Math.round(100 * (Math.log(32 / scope) / Math.log(2))) / 100
       console.log("scope", scope)
@@ -147,10 +140,7 @@ export class PageMain extends Component {
    }
 
    set_level = (level) => {
-      const {update_counter, inspector_ready} = this.state
-      // if (!inspector_ready) {
-      //    return
-      // }
+      const {update_counter} = this.state
       console.log("level", level)
       this.setState({
          filter_level: 0,
@@ -161,10 +151,7 @@ export class PageMain extends Component {
    }
 
    set_filter_level = (filter_level) => {
-      const {inspector_ready, update_counter} = this.state
-      // if (!inspector_ready) {
-      //    return
-      // }
+      const { update_counter} = this.state
       this.setState({
          filter_level: filter_level,
          inspector_ready: false,
@@ -176,9 +163,12 @@ export class PageMain extends Component {
       const {
          left_width, right_width, focal_point, inspector_ready, highest_level,
          hover_point, scope, in_hover, update_counter, canvas_buffer, ctx, filter_level,
-         options, effects_func, s
+         options, effects_func
       } = this.state;
       const {app_name} = this.props;
+      if (!scope) {
+         return []
+      }
       const left_side = [
          <MainStrata
             key={'strata-pane'}
