@@ -55,7 +55,7 @@ export class PageMain extends Component {
       right_width: 0,
       focal_point: {x: -0.75, y: 0.25},
       scope: 2.5,
-      inspector_ready: true,
+      inspector_ready: false,
       hover_point: {x: 0, y: 0},
       in_hover: false,
       update_counter: 0,
@@ -117,9 +117,9 @@ export class PageMain extends Component {
 
    set_focal_point = (focal_point) => {
       const {update_counter, inspector_ready} = this.state
-      if (!inspector_ready) {
-         return
-      }
+      // if (!inspector_ready) {
+      //    return
+      // }
       localStorage.setItem(STORAGE_FOCAL_POINT_KEY, JSON.stringify(focal_point))
       this.setState({
          focal_point: focal_point,
@@ -131,9 +131,9 @@ export class PageMain extends Component {
 
    set_scope = (scope) => {
       const {update_counter, inspector_ready} = this.state
-      if (!inspector_ready) {
-         return
-      }
+      // if (!inspector_ready) {
+      //    return
+      // }
       localStorage.setItem(STORAGE_SCOPE_KEY, `${scope}`)
       const level = Math.round(100 * (Math.log(32 / scope) / Math.log(2))) / 100
       console.log("scope", scope)
@@ -148,9 +148,9 @@ export class PageMain extends Component {
 
    set_level = (level) => {
       const {update_counter, inspector_ready} = this.state
-      if (!inspector_ready) {
-         return
-      }
+      // if (!inspector_ready) {
+      //    return
+      // }
       console.log("level", level)
       this.setState({
          filter_level: 0,
@@ -162,9 +162,9 @@ export class PageMain extends Component {
 
    set_filter_level = (filter_level) => {
       const {inspector_ready, update_counter} = this.state
-      if (!inspector_ready) {
-         return
-      }
+      // if (!inspector_ready) {
+      //    return
+      // }
       this.setState({
          filter_level: filter_level,
          inspector_ready: false,
