@@ -90,14 +90,23 @@ export class TabBailiwicks extends Component {
 
    componentDidUpdate(prevProps, prevState, snapshot) {
       const {all_bailiwicks} = this.state
-      const {update_counter} = this.props
-      if (!all_bailiwicks.length) {
-         this.fetch_bailiwicks()
-         return;
-      }
+      const {update_counter, scope, focal_point, in_wait} = this.props
+      // if (!all_bailiwicks.length) {
+      //    this.fetch_bailiwicks()
+      //    return;
+      // }
       const update_counter_changed = update_counter !== prevProps.update_counter
-      if (update_counter_changed) {
-         this.decorate_canvas()
+      const in_wait_changed = in_wait !== prevProps.in_wait
+      const scope_changed = scope !== prevProps.scope
+      const focal_point_changed = focal_point.x !== prevProps.focal_point.x
+         || focal_point.y !== prevProps.focal_point.y
+      if (update_counter_changed
+         || scope_changed
+         || focal_point_changed
+         || in_wait_changed) {
+         setTimeout(() => {
+            this.decorate_canvas()
+         }, 1000)
       }
    }
 
@@ -395,7 +404,7 @@ export class TabBailiwicks extends Component {
       const bailiwick = all_bailiwicks[index]
       this.select_bailiwick(bailiwick, index)
       setTimeout(() => {
-         this.do_crawl(index +1)
+         this.do_crawl(index + 1)
       }, 20000)
    }
 
