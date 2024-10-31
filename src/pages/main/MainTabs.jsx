@@ -8,12 +8,12 @@ import FractoOrbitalsList from "fracto/common/ui/FractoOrbitalsList";
 
 import TabBailiwicks from "../tabs/TabBailiwicks"
 import TabCoverage from "../tabs/TabCoverage"
-import TabMedia from "../tabs/TabMedia";
+import TabVideo from "../tabs/TabVideo";
 import TabPatterns from "../tabs/TabPatterns";
 import TabBurrows from "../tabs/TabBurrows";
 import TabCache from "../tabs/TabCache";
 
-const TAB_LABEL_MEDIA = "media";
+const TAB_LABEL_MEDIA = "video";
 const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_COVERAGE = "coverage";
@@ -130,7 +130,7 @@ export class MainTabs extends Component {
             />
             break;
          case TAB_INDEX_MEDIA:
-            content = <TabMedia
+            content = <TabVideo
                width_px={width_px}
                focal_point={focal_point}
                scope={scope}

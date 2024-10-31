@@ -86,7 +86,7 @@ export class TabCoverage extends Component {
    }
 
    enhance = (tile, cb) => {
-      const {all_history} = this.state
+      const {all_history, tile_index} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
       const start = performance.now()
       FractoTileGenerate.begin(tile, (history, tile_points) => {
@@ -104,8 +104,11 @@ export class TabCoverage extends Component {
                tile_points,
                canvas_buffer)
          }
-         const history_item = FractoTileRunHistory.format_history_item(tile, "coverage", history)
+         const history_item = FractoTileRunHistory.format_history_item(tile, "coverage", history, tile_index)
          history_item.elapsed = end - start
+         if (all_history.length > 100) {
+            all_history.pop();
+         }
          all_history.push(history_item)
          this.setState({history, tile_points})
          cb(true)
@@ -138,10 +141,11 @@ export class TabCoverage extends Component {
    render_run_history_summary = () => {
       const {all_history, tile_index, run_tile_index_start, run_start} = this.state;
       const timer_now = performance.now()
-      const tiles_per_minute = 60 * 1000 * (tile_index - run_tile_index_start) / (timer_now - run_start)
+      const run_count = tile_index - run_tile_index_start
+      const tiles_per_minute = 60 * 1000 * (run_count) / (timer_now - run_start)
       const rounded_tiles_per_minute = Math.round(100 * tiles_per_minute) / 100
       return <SummaryWrapper>
-         {!all_history.length ? '' : `${all_history.length} results this run (${rounded_tiles_per_minute} tiles/min)`}
+         {!all_history.length ? '' : `${run_count} results this run (${rounded_tiles_per_minute} tiles/min)`}
       </SummaryWrapper>
    }
 
