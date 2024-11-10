@@ -5,7 +5,7 @@ import styled from "styled-components";
 import {CoolStyles} from "common/ui/CoolImports";
 
 import FractoAlterableOutline from "fracto/common/ui/FractoAlterableOutline";
-import {FractoLayeredImage} from "../../fracto/common/render/FractoLayeredImage";
+import FractoRasterImage from "fracto/common/render/FractoRasterImage";
 
 const SCROLL_WIDTH_PX = 20
 const INSPECTOR_PADDING_PX = 10
@@ -236,7 +236,7 @@ export class MainStrata extends Component {
             ref={stratum.stratum_ref}
             onClick={e => this.on_click(e, index)}
             style={wrapper_style}>
-            <FractoLayeredImage
+            <FractoRasterImage
                width_px={canvas_width}
                scope={canvas_scope}
                focal_point={focal_point}

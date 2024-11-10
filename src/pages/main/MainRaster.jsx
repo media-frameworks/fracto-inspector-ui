@@ -5,7 +5,7 @@ import styled from "styled-components";
 import {CoolStyles} from "common/ui/CoolImports";
 
 import {INSPECTOR_SIZE_PX} from "../constants";
-import {FractoLayeredImage} from "../../fracto/common/render/FractoLayeredImage";
+import FractoRasterImage from "fracto/common/render/FractoRasterImage";
 
 const InspectorWrapper = styled(CoolStyles.InlineBlock)`
    height: 99%;
@@ -79,7 +79,7 @@ export class MainRaster extends Component {
          onClick={this.on_click}
          onMouseMove={this.on_mousemove}
          onMouseLeave={this.on_mouseleave}>
-         <FractoLayeredImage
+         <FractoRasterImage
             width_px={INSPECTOR_SIZE_PX}
             focal_point={focal_point}
             scope={scope}
