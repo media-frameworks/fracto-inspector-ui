@@ -52,6 +52,8 @@ export class TabCoverage extends Component {
       run_tile_index_start: 0,
       selected_row: -1,
       repair_tile_data: [],
+      is_all_pattern: false,
+      context_completed: '',
    }
 
    on_select_row = (new_selected_row) => {
@@ -85,33 +87,50 @@ export class TabCoverage extends Component {
       })
    }
 
+   wait_for_context = (short_code, cb) => {
+      const interval = setInterval(() => {
+         console.log('short_code, this.state.context_completed', short_code, this.state.context_completed)
+         if (short_code === this.state.context_completed) {
+            clearInterval(interval)
+            cb(this.state.is_all_pattern)
+         }
+      }, 500)
+   }
+
    enhance = (tile, cb) => {
       const {all_history, tile_index} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
-      const start = performance.now()
-      FractoTileGenerate.begin(tile, (history, tile_points) => {
-         // console.log("history, tile_points", history, tile_points)
-         const end = performance.now()
-         if (tile_points) {
-            FractoIncrementalRender.tile_to_canvas(
-               ctx,
-               tile,
-               focal_point,
-               scope,
-               1.0,
-               INSPECTOR_SIZE_PX,
-               INSPECTOR_SIZE_PX,
-               tile_points,
-               canvas_buffer)
+      if (all_history.length > 100) {
+         all_history.pop();
+      }
+      this.wait_for_context(tile.short_code, is_all_pattern => {
+         if (is_all_pattern) {
+            // skip it
+            const history_item = FractoTileRunHistory.format_history_item(
+               tile, "coverage", "skipping deep interior tile", tile_index)
+            history_item.elapsed = 0
+            all_history.push(history_item)
+            this.setState({all_history})
+            cb(true)
+         } else {
+            const start = performance.now()
+            FractoTileGenerate.begin(tile, (history, tile_points) => {
+               // console.log("history, tile_points", history, tile_points)
+               const end = performance.now()
+               if (tile_points) {
+                  FractoIncrementalRender.tile_to_canvas(
+                     ctx, tile, focal_point, scope, 1.0,
+                     INSPECTOR_SIZE_PX, INSPECTOR_SIZE_PX, tile_points,
+                     canvas_buffer)
+               }
+               const history_item = FractoTileRunHistory.format_history_item(
+                  tile, "coverage", history, tile_index)
+               history_item.elapsed = end - start
+               all_history.push(history_item)
+               this.setState({history, tile_points})
+               cb(true)
+            })
          }
-         const history_item = FractoTileRunHistory.format_history_item(tile, "coverage", history, tile_index)
-         history_item.elapsed = end - start
-         if (all_history.length > 100) {
-            all_history.pop();
-         }
-         all_history.push(history_item)
-         this.setState({history, tile_points})
-         cb(true)
       })
    }
 
@@ -188,6 +207,27 @@ export class TabCoverage extends Component {
       on_level_selected(level)
    }
 
+   on_context_rendered = (canvas_buffer, ctx) => {
+      const {tile_index, enhance_tiles} = this.state
+      let is_all_pattern = true
+      for (let img_x = 0; img_x < canvas_buffer.length; img_x++) {
+         for (let img_y = 0; img_y < canvas_buffer[img_x].length; img_y++) {
+            if (canvas_buffer[img_x][img_y][0] === 0) {
+               is_all_pattern = false
+               break
+            }
+         }
+         if (!is_all_pattern) {
+            break;
+         }
+      }
+      const tile = enhance_tiles[tile_index]
+      this.setState({
+         context_completed: tile.short_code,
+         is_all_pattern
+      })
+   }
+
    render() {
       const {
          tile_index, all_history,
@@ -218,6 +258,7 @@ export class TabCoverage extends Component {
             tile_size_px={CONTEXT_SIZE_PX}
             on_render_tile={this.on_render_tile}
             all_tiles={sorted}
+            on_context_rendered={this.on_context_rendered}
             on_automate={this.on_automate}
          />
       } else if (repair_tiles.length) {

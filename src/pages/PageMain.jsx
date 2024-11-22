@@ -140,18 +140,19 @@ export class PageMain extends Component {
    }
 
    set_level = (level) => {
-      const {update_counter} = this.state
+      const {update_counter, highest_level, scope} = this.state
       console.log("level", level)
       this.setState({
          filter_level: 0,
          highest_level: level,
+         scope: scope * highest_level / level,
          inspector_ready: false,
          update_counter: update_counter + 1
       })
    }
 
    set_filter_level = (filter_level) => {
-      const { update_counter} = this.state
+      const {update_counter} = this.state
       this.setState({
          filter_level: filter_level,
          inspector_ready: false,
