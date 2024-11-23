@@ -84,7 +84,7 @@ export class PageMain extends Component {
          this.set_scope(parseFloat(recent_scope))
       }
       else {
-         this.setScope(3.0)
+         this.set_scope(3.0)
       }
       console.log('page ready')
    }
