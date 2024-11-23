@@ -76,9 +76,15 @@ export class PageMain extends Component {
       if (recent_focal_point) {
          this.set_focal_point(JSON.parse(recent_focal_point))
       }
+      else {
+         this.set_focal_point({x: -1.25, y: 0.125})
+      }
       const recent_scope = localStorage.getItem(STORAGE_SCOPE_KEY)
       if (recent_scope) {
          this.set_scope(parseFloat(recent_scope))
+      }
+      else {
+         this.setScope(3.0)
       }
       console.log('page ready')
    }
@@ -168,6 +174,7 @@ export class PageMain extends Component {
       } = this.state;
       const {app_name} = this.props;
       if (!scope) {
+         console.log('no scope')
          return []
       }
       const left_side = [
