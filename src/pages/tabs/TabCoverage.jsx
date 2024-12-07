@@ -88,7 +88,13 @@ export class TabCoverage extends Component {
    }
 
    wait_for_context = (short_code, cb) => {
+      let countdown = 10;
       const interval = setInterval(() => {
+         countdown--;
+         if (!countdown) {
+            clearInterval(interval)
+            cb(false)
+         }
          console.log('short_code, this.state.context_completed', short_code, this.state.context_completed)
          if (short_code === this.state.context_completed) {
             clearInterval(interval)
