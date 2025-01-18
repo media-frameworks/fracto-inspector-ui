@@ -11,6 +11,7 @@ import FractoTileRunHistory from "../../fracto/common/tile/FractoTileRunHistory"
 import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementalRender"
 import FractoMruCache from "../../fracto/common/data/FractoMruCache";
 import FractoTileCoverage from "../../fracto/common/tile/FractoTileCoverage";
+import FractoUtil from "../../fracto/common/FractoUtil";
 
 const SectionWrapper = styled(CoolStyles.Block)`
    ${CoolStyles.align_center}
@@ -117,7 +118,10 @@ export class TabCoverage extends Component {
             history_item.elapsed = 0
             all_history.push(history_item)
             this.setState({all_history})
-            cb(true)
+            FractoUtil.tile_to_bin(tile.short_code, 'ready', 'interior', ok => {
+               console.log('tile_to_bin', ok)
+               cb(true)
+            })
          } else {
             const start = performance.now()
             FractoTileGenerate.begin(tile, (history, tile_points) => {

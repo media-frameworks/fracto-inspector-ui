@@ -52,7 +52,8 @@ export class TabVideo extends Component {
 
    state = {
       path_steps: [],
-      step_index: 0
+      step_index: 0,
+      in_render: false,
    }
 
    add_to_path = () => {
@@ -77,13 +78,25 @@ export class TabVideo extends Component {
       }, 100)
    }
 
+   render_video = () => {
+
+   }
+
    render() {
-      const {path_steps, step_index} = this.state
+      const {path_steps, step_index, in_render} = this.state
       const start_button = <CoolButton
          on_click={this.add_to_path}
          content={path_steps.length ? 'Add to Path' : 'Start Path'}
          disabled={false}
          primary={true}
+         style={{marginBottom: '6px'}}
+      />
+      const render_button = <CoolButton
+         on_click={this.render_video}
+         content={!in_render ? 'Render Path' : 'Quit Render'}
+         disabled={false}
+         primary={true}
+         style={{marginBottom: '6px', marginLeft: '6px'}}
       />
       const path_steps_data = path_steps.map((step, i) => {
          return {
@@ -96,12 +109,13 @@ export class TabVideo extends Component {
       const path_steps_table = !path_steps.length ? [] : <CoolTable
          data={path_steps_data}
          columns={PATH_STEPS_COLUMNS}
-         options={TABLE_CAN_SELECT}
+         options={[TABLE_CAN_SELECT]}
          selected_row={step_index}
          on_select_row={this.select_step}
       />
       return <ContentWrapper>
          {start_button}
+         {path_steps.length ? render_button : ''}
          {path_steps_table}
       </ContentWrapper>
    }
