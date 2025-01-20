@@ -12,6 +12,7 @@ import TabVideo from "../tabs/TabVideo";
 import TabPatterns from "../tabs/TabPatterns";
 import TabBurrows from "../tabs/TabBurrows";
 import TabCache from "../tabs/TabCache";
+import TabInventory from "../tabs/TabInventory";
 
 const TAB_LABEL_MEDIA = "video";
 const TAB_LABEL_ORBITALS = "orbitals";
@@ -20,6 +21,7 @@ const TAB_LABEL_COVERAGE = "coverage";
 const TAB_LABEL_PATTERNS = "patterns";
 const TAB_LABEL_BURROWS = "burrows";
 const TAB_LABEL_CACHE = "cache";
+const TAB_LABEL_INVENTORY = "inventory";
 const TABS_LIST = [
    TAB_LABEL_ORBITALS,
    TAB_LABEL_COVERAGE,
@@ -28,6 +30,7 @@ const TABS_LIST = [
    TAB_LABEL_BURROWS,
    TAB_LABEL_MEDIA,
    TAB_LABEL_CACHE,
+   TAB_LABEL_INVENTORY,
 ]
 const TAB_INDEX_ORBITALS = 0
 const TAB_INDEX_COVERAGE = 1
@@ -36,6 +39,7 @@ const TAB_INDEX_BAILIWICKS = 3
 const TAB_INDEX_BURROWS = 4
 const TAB_INDEX_MEDIA = 5
 const TAB_INDEX_CACHE = 6
+const TAB_INDEX_INVENTORY = 7
 
 export class MainTabs extends Component {
 
@@ -124,6 +128,13 @@ export class MainTabs extends Component {
             break;
          case TAB_INDEX_CACHE:
             content = <TabCache
+               width_px={width_px}
+               on_focal_point_changed={on_focal_point_changed}
+               on_scope_changed={on_scope_changed}
+            />
+            break;
+         case TAB_INDEX_INVENTORY:
+            content = <TabInventory
                width_px={width_px}
                on_focal_point_changed={on_focal_point_changed}
                on_scope_changed={on_scope_changed}

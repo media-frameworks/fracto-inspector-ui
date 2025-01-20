@@ -140,7 +140,7 @@ export class TabPatterns extends Component {
             fracto_values.orbital_points,
             [Q_center],
             [Q2_center]),
-         this.click_point_table(P)
+         // this.click_point_table(P)
       ]
    }
 
