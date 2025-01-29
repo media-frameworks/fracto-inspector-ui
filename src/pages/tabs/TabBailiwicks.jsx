@@ -13,25 +13,25 @@ const SELECTED_BAILIWICK_KEY = "selected_bailiwick";
 const LS_BAILIWICK_ORDERING_KEY = 'ls_bailiwick_ordering_key'
 
 const ContentWrapper = styled(CoolStyles.Block)`
-   background-color: white;
-   overflow: hidden;
+    background-color: white;
+    overflow: hidden;
 `
 
 const SelectWrapper = styled(CoolStyles.InlineBlock)`
-   padding: 0.5rem;
-   margin: 0;
-   height: 35rem;
-   overflow-y: scroll;
-   overflow-x: hidden;
+    padding: 0.5rem;
+    margin: 0;
+    height: 35rem;
+    overflow-y: scroll;
+    overflow-x: hidden;
 `
 
 const ControlsWrapper = styled(CoolStyles.Block)`
-   padding: 0.5rem;
-   margin: 0;
+    padding: 0.5rem;
+    margin: 0;
 `
 
 const Spacer = styled(CoolStyles.InlineBlock)`
-   width: 1rem;
+    width: 1rem;
 `
 
 const ORDERING_BY_SM_TO_LG = 'small to large'
@@ -135,7 +135,8 @@ export class TabBailiwicks extends Component {
    decorate_canvas = () => {
       const {ctx, scope, focal_point} = this.props
       const visible_bailiwicks = this.visible_bailiwicks()
-         .slice(0, 15)
+         .sort((a, b) => b.magnitude - a.magnitude)
+         .slice(0, 25)
          .map(bailiwick => JSON.parse(bailiwick.core_point))
       this.setState({visible_bailiwicks: visible_bailiwicks})
       FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, visible_bailiwicks)
