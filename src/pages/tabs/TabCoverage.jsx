@@ -152,6 +152,7 @@ export class TabCoverage extends Component {
             stats.interior += 1
             this.setState({all_history, stats})
             this.upload_points(tile.short_code, {}, 'interior')
+            cb(true)
             // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=interior`
             // axios.post(url, {})
 
