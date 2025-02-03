@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styled from "styled-components";
+import axios from "axios";
+import network from "../../common/config/network.json";
 
 import {CoolStyles} from "common/ui/CoolImports";
 import {INSPECTOR_SIZE_PX} from "../constants";
@@ -9,9 +11,10 @@ import FractoTileAutomate, {CONTEXT_SIZE_PX} from "../../fracto/common/tile/Frac
 import FractoTileGenerate from "../../fracto/common/tile/FractoTileGenerate";
 import FractoTileRunHistory from "../../fracto/common/tile/FractoTileRunHistory"
 import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementalRender"
-import FractoMruCache from "../../fracto/common/data/FractoMruCache";
+// import FractoMruCache from "../../fracto/common/data/FractoMruCache";
 import FractoTileCoverage from "../../fracto/common/tile/FractoTileCoverage";
-import FractoUtil from "../../fracto/common/FractoUtil";
+// import FractoUtil from "../../fracto/common/FractoUtil";
+import FractoTileCache, {CACHED_TILES} from "../../fracto/common/data/FractoTileCache";
 
 const SectionWrapper = styled(CoolStyles.Block)`
     ${CoolStyles.align_center}
@@ -83,17 +86,25 @@ export class TabCoverage extends Component {
       }, 50)
    }
 
-   on_select_repair_tile = (new_index, cb) => {
+   init_stats = () => {
+      this.setState({
+         stats: STATS_INIT
+      })
+   }
+
+   on_select_repair_tile = async (new_index, cb) => {
       const {repair_tiles} = this.state
       this.setState({tile_index: new_index})
-      FractoMruCache.get_tile_data(repair_tiles[new_index].short_code, (tile_data) => {
-         this.setState({repair_tile_data: tile_data, stats: STATS_INIT})
+      const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
+      // FractoMruCache.get_tile_data(repair_tiles[new_index].short_code, (tile_data) => {
+         this.setState({repair_tile_data: tile_data})
+         this.init_stats()
          setTimeout(() => {
             if (cb) {
                cb(true)
             }
          }, 250)
-      })
+      // })
    }
 
    wait_for_context = (short_code, cb) => {
@@ -112,8 +123,21 @@ export class TabCoverage extends Component {
       }, 500)
    }
 
+   upload_points = (short_code, tile_points, dir) => {
+      const url = `${network["fracto-prod"]}/new_tile.php?short_code=${short_code}&dir=${dir}`
+      axios.post(url, tile_points, {
+         headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Expose-Headers': 'Access-Control-*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+         },
+         mode: 'no-cors',
+         crossdomain: true,
+      })
+   }
+
    enhance = (tile, cb) => {
-      const {all_history, tile_index, stats} = this.state
+      const {all_history, tile_index, stats, repair_tiles} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
       if (all_history.length > 100) {
          all_history.pop();
@@ -127,23 +151,36 @@ export class TabCoverage extends Component {
             all_history.push(history_item)
             stats.interior += 1
             this.setState({all_history, stats})
-            FractoUtil.tile_to_bin(tile.short_code, 'ready', 'interior', ok => {
-               console.log('tile_to_bin', ok)
-               cb(true)
-            })
+            this.upload_points(tile.short_code, {}, 'interior')
+            // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=interior`
+            // axios.post(url, {})
+
+            // FractoUtil.tile_to_bin(tile.short_code, 'ready', 'interior', ok => {
+            //    console.log('tile_to_bin', ok)
+            //    cb(true)
+            // })
          } else {
             const start = performance.now()
             FractoTileGenerate.begin(tile, (history, tile_points) => {
-               // console.log("history, tile_points", history, tile_points)
-               const end = performance.now()
+               console.log("history, tile_points", history, tile_points)
                const is_blank = history.indexOf('blank') > 0
-               const is_updated = history.indexOf('updated') > 0
+               const is_updated = repair_tiles.length > 0
                if (is_blank) {
                   stats.blank += 1
+                  this.upload_points(tile.short_code, {}, 'blank')
+                  // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=blank`
+                  // axios.post(url, {})
                } else if (is_updated) {
                   stats.updated += 1
+                  this.upload_points(tile.short_code, tile_points, 'updated')
+                  delete CACHED_TILES[tile.short_code]
+                  // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=updated`
+                  // axios.post(url, tile_points)
                } else {
                   stats.calculated += 1
+                  this.upload_points(tile.short_code, tile_points, 'new')
+                  // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=new`
+                  // axios.post(url, tile_points)
                }
                if (tile_points) {
                   FractoIncrementalRender.tile_to_canvas(
@@ -152,6 +189,7 @@ export class TabCoverage extends Component {
                      canvas_buffer)
                   this.setState({repair_tile_data: tile_points})
                }
+               const end = performance.now()
                const history_item = FractoTileRunHistory.format_history_item(
                   tile, "coverage", history, tile_index)
                history_item.elapsed = end - start
@@ -197,8 +235,8 @@ export class TabCoverage extends Component {
       const updated_stats = stats.updated ? `${stats.updated} updated` : ''
       const calculated_stats = stats.calculated ? `${stats.calculated} new` : ''
       const all_stats = [blank_stats, interior_stats, updated_stats, calculated_stats]
-      const stats_str = all_stats.filter(stat=> stat.length > 1).join(', ')
-         return <SummaryWrapper>
+      const stats_str = all_stats.filter(stat => stat.length > 1).join(', ')
+      return <SummaryWrapper>
          {!all_history.length ? '' : `${run_count} results this run (${rounded_tiles_per_minute} tiles/min): ${stats_str}`}
       </SummaryWrapper>
    }
@@ -212,8 +250,8 @@ export class TabCoverage extends Component {
             run_start: run_start,
             run_tile_index_start: tile_index,
             all_history: [],
-            stats: STATS_INIT,
          })
+         this.init_stats()
       }
    }
 
@@ -225,7 +263,6 @@ export class TabCoverage extends Component {
             repair_level: level,
             tile_index: 0,
             all_history: [],
-            stats: STATS_INIT,
          })
       } else {
          this.setState({
@@ -234,9 +271,9 @@ export class TabCoverage extends Component {
             enhance_level: level,
             tile_index: 0,
             all_history: [],
-            stats: STATS_INIT,
          })
       }
+      this.init_stats()
    }
 
    on_level_selected = (level) => {

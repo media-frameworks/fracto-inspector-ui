@@ -1,14 +1,15 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import styled from "styled-components";
+// import styled from "styled-components";
 
-import {CoolStyles} from "common/ui/CoolImports";
+// import {CoolStyles} from "common/ui/CoolImports";
 import LevelSelector from "./ui/LevelSelector";
 import {TabUiStyles as styles} from "../styles/TabUiStyles";
 import FractoIndexedTiles from "../../fracto/common/data/FractoIndexedTiles";
 import FractoTileAutomate, {CONTEXT_SIZE_PX} from "../../fracto/common/tile/FractoTileAutomate";
-import FractoMruCache from "../../fracto/common/data/FractoMruCache";
+// import FractoMruCache from "../../fracto/common/data/FractoMruCache";
 import FractoTileRender from "../../fracto/common/tile/FractoTileRender";
+import FractoTileCache from "../../fracto/common/data/FractoTileCache";
 
 export class TabInventory extends Component {
 
@@ -45,10 +46,11 @@ export class TabInventory extends Component {
       }, 500)
    }
 
-   on_select_tile = (new_index, cb) => {
+   on_select_tile = async (new_index, cb) => {
       const {tile_index, level_tiles} = this.state
       const tile = level_tiles[tile_index]
-      FractoMruCache.get_tile_data(tile.short_code, tile_data => {
+      const tile_data = await FractoTileCache.get_tile(tile.short_code)
+      // FractoMruCache.get_tile_data(tile.short_code, tile_data => {
          this.setState({
             tile_index: new_index,
             tile_data
@@ -56,7 +58,7 @@ export class TabInventory extends Component {
          if (cb) {
             cb(true)
          }
-      })
+      // })
    }
 
    wait_for_context = (short_code, cb) => {
