@@ -83,7 +83,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 50)
+      }, 250)
    }
 
    init_stats = () => {
@@ -113,9 +113,9 @@ export class TabCoverage extends Component {
          countdown--;
          if (!countdown) {
             clearInterval(interval)
-            cb(false)
+            console.error('short_code, wait_for_context failed', short_code)
+            cb(-1)
          }
-         console.log('short_code, this.state.context_completed', short_code, this.state.context_completed)
          if (short_code === this.state.context_completed) {
             clearInterval(interval)
             cb(this.state.is_all_pattern)
@@ -142,8 +142,12 @@ export class TabCoverage extends Component {
       if (all_history.length > 100) {
          all_history.pop();
       }
+      console.log('enhance', tile.short_code)
       this.wait_for_context(tile.short_code, is_all_pattern => {
-         if (is_all_pattern) {
+         if (is_all_pattern === -1) {
+            cb(false)
+         }
+         else if (is_all_pattern) {
             // skip it
             const history_item = FractoTileRunHistory.format_history_item(
                tile, "coverage", "skipping deep interior tile", tile_index)
@@ -163,7 +167,7 @@ export class TabCoverage extends Component {
          } else {
             const start = performance.now()
             FractoTileGenerate.begin(tile, (history, tile_points) => {
-               console.log("history, tile_points", history, tile_points)
+               // console.log("history, tile_points", history, tile_points)
                const is_blank = history.indexOf('blank') > 0
                const is_updated = repair_tiles.length > 0
                if (is_blank) {
@@ -175,6 +179,7 @@ export class TabCoverage extends Component {
                   stats.updated += 1
                   this.upload_points(tile.short_code, tile_points, 'updated')
                   delete CACHED_TILES[tile.short_code]
+                  this.setState({repair_tile_data: tile_points})
                   // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=updated`
                   // axios.post(url, tile_points)
                } else {
@@ -188,7 +193,6 @@ export class TabCoverage extends Component {
                      ctx, tile, focal_point, scope, 1.0,
                      INSPECTOR_SIZE_PX, INSPECTOR_SIZE_PX, tile_points,
                      canvas_buffer)
-                  this.setState({repair_tile_data: tile_points})
                }
                const end = performance.now()
                const history_item = FractoTileRunHistory.format_history_item(
