@@ -11,9 +11,7 @@ import FractoTileAutomate, {CONTEXT_SIZE_PX} from "../../fracto/common/tile/Frac
 import FractoTileGenerate from "../../fracto/common/tile/FractoTileGenerate";
 import FractoTileRunHistory from "../../fracto/common/tile/FractoTileRunHistory"
 import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementalRender"
-// import FractoMruCache from "../../fracto/common/data/FractoMruCache";
 import FractoTileCoverage from "../../fracto/common/tile/FractoTileCoverage";
-// import FractoUtil from "../../fracto/common/FractoUtil";
 import FractoTileCache, {CACHED_TILES} from "../../fracto/common/data/FractoTileCache";
 
 const SectionWrapper = styled(CoolStyles.Block)`
@@ -96,7 +94,6 @@ export class TabCoverage extends Component {
       const {repair_tiles} = this.state
       this.setState({tile_index: new_index})
       const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
-      // FractoMruCache.get_tile_data(repair_tiles[new_index].short_code, (tile_data) => {
          this.setState({repair_tile_data: tile_data})
          this.init_stats()
          setTimeout(() => {
@@ -104,7 +101,6 @@ export class TabCoverage extends Component {
                cb(true)
             }
          }, 250)
-      // })
    }
 
    wait_for_context = (short_code, cb) => {
@@ -157,13 +153,6 @@ export class TabCoverage extends Component {
             this.setState({all_history, stats})
             this.upload_points(tile.short_code, {}, 'interior')
             cb(true)
-            // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=interior`
-            // axios.post(url, {})
-
-            // FractoUtil.tile_to_bin(tile.short_code, 'ready', 'interior', ok => {
-            //    console.log('tile_to_bin', ok)
-            //    cb(true)
-            // })
          } else {
             const start = performance.now()
             FractoTileGenerate.begin(tile, (history, tile_points) => {
@@ -173,20 +162,14 @@ export class TabCoverage extends Component {
                if (is_blank) {
                   stats.blank += 1
                   this.upload_points(tile.short_code, {}, 'blank')
-                  // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=blank`
-                  // axios.post(url, {})
                } else if (is_updated) {
                   stats.updated += 1
                   this.upload_points(tile.short_code, tile_points, 'updated')
                   delete CACHED_TILES[tile.short_code]
                   this.setState({repair_tile_data: tile_points})
-                  // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=updated`
-                  // axios.post(url, tile_points)
                } else {
                   stats.calculated += 1
                   this.upload_points(tile.short_code, tile_points, 'new')
-                  // const url = `${network["fracto-prod"]}/new_tile.php?short_code=${tile.short_code}&dir=new`
-                  // axios.post(url, tile_points)
                }
                if (tile_points) {
                   FractoIncrementalRender.tile_to_canvas(
