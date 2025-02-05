@@ -81,12 +81,12 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 250)
+      }, 150)
    }
 
    init_stats = () => {
       this.setState({
-         stats: STATS_INIT
+         stats: JSON.parse(JSON.stringify(STATS_INIT))
       })
    }
 
@@ -100,11 +100,11 @@ export class TabCoverage extends Component {
             if (cb) {
                cb(true)
             }
-         }, 250)
+         }, 150)
    }
 
    wait_for_context = (short_code, cb) => {
-      let countdown = 20;
+      let countdown = 50;
       const interval = setInterval(() => {
          countdown--;
          if (!countdown) {
@@ -139,6 +139,7 @@ export class TabCoverage extends Component {
          all_history.pop();
       }
       console.log('enhance', tile.short_code)
+      this.setState({context_completed: tile.short_code})
       this.wait_for_context(tile.short_code, is_all_pattern => {
          if (is_all_pattern === -1) {
             cb(false)
