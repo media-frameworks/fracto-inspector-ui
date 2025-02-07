@@ -81,7 +81,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 150)
+      }, 250)
    }
 
    init_stats = () => {
@@ -116,7 +116,7 @@ export class TabCoverage extends Component {
             clearInterval(interval)
             cb(this.state.is_all_pattern)
          }
-      }, 500)
+      }, 200)
    }
 
    upload_points = (short_code, tile_points, dir) => {
@@ -286,10 +286,12 @@ export class TabCoverage extends Component {
          }
       }
       const tile = enhance_tiles[tile_index]
-      this.setState({
-         context_completed: tile.short_code,
-         is_all_pattern
-      })
+      setTimeout(()=>{
+         this.setState({
+            context_completed: tile.short_code,
+            is_all_pattern
+         })
+      }, 200)
    }
 
    render() {
