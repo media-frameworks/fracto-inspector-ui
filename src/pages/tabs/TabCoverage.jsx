@@ -94,13 +94,13 @@ export class TabCoverage extends Component {
       const {repair_tiles} = this.state
       this.setState({tile_index: new_index})
       const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
-         this.setState({repair_tile_data: tile_data})
-         this.init_stats()
-         setTimeout(() => {
-            if (cb) {
-               cb(true)
-            }
-         }, 150)
+      this.setState({repair_tile_data: tile_data})
+      this.init_stats()
+      setTimeout(() => {
+         if (cb) {
+            cb(true)
+         }
+      }, 150)
    }
 
    wait_for_context = (short_code, cb) => {
@@ -143,8 +143,7 @@ export class TabCoverage extends Component {
       this.wait_for_context(tile.short_code, is_all_pattern => {
          if (is_all_pattern === -1) {
             cb(false)
-         }
-         else if (is_all_pattern) {
+         } else if (is_all_pattern) {
             // skip it
             const history_item = FractoTileRunHistory.format_history_item(
                tile, "coverage", "skipping deep interior tile", tile_index)
@@ -155,37 +154,39 @@ export class TabCoverage extends Component {
             this.upload_points(tile.short_code, {}, 'interior')
             cb(true)
          } else {
-            const start = performance.now()
-            FractoTileGenerate.begin(tile, (history, tile_points) => {
-               // console.log("history, tile_points", history, tile_points)
-               const is_blank = history.indexOf('blank') > 0
-               const is_updated = repair_tiles.length > 0
-               if (is_blank) {
-                  stats.blank += 1
-                  this.upload_points(tile.short_code, {}, 'blank')
-               } else if (is_updated) {
-                  stats.updated += 1
-                  this.upload_points(tile.short_code, tile_points, 'updated')
-                  delete CACHED_TILES[tile.short_code]
-                  this.setState({repair_tile_data: tile_points})
-               } else {
-                  stats.calculated += 1
-                  this.upload_points(tile.short_code, tile_points, 'new')
-               }
-               if (tile_points) {
-                  FractoIncrementalRender.tile_to_canvas(
-                     ctx, tile, focal_point, scope, 1.0,
-                     INSPECTOR_SIZE_PX, INSPECTOR_SIZE_PX, tile_points,
-                     canvas_buffer)
-               }
-               const end = performance.now()
-               const history_item = FractoTileRunHistory.format_history_item(
-                  tile, "coverage", history, tile_index)
-               history_item.elapsed = end - start
-               all_history.push(history_item)
-               this.setState({history, tile_points})
-               cb(true)
-            })
+            setTimeout(() => {
+               const start = performance.now()
+               FractoTileGenerate.begin(tile, (history, tile_points) => {
+                  // console.log("history, tile_points", history, tile_points)
+                  const is_blank = history.indexOf('blank') > 0
+                  const is_updated = repair_tiles.length > 0
+                  if (is_blank) {
+                     stats.blank += 1
+                     this.upload_points(tile.short_code, {}, 'blank')
+                  } else if (is_updated) {
+                     stats.updated += 1
+                     this.upload_points(tile.short_code, tile_points, 'updated')
+                     delete CACHED_TILES[tile.short_code]
+                     this.setState({repair_tile_data: tile_points})
+                  } else {
+                     stats.calculated += 1
+                     this.upload_points(tile.short_code, tile_points, 'new')
+                  }
+                  if (tile_points) {
+                     FractoIncrementalRender.tile_to_canvas(
+                        ctx, tile, focal_point, scope, 1.0,
+                        INSPECTOR_SIZE_PX, INSPECTOR_SIZE_PX, tile_points,
+                        canvas_buffer)
+                  }
+                  const end = performance.now()
+                  const history_item = FractoTileRunHistory.format_history_item(
+                     tile, "coverage", history, tile_index)
+                  history_item.elapsed = end - start
+                  all_history.push(history_item)
+                  this.setState({history, tile_points})
+                  cb(true)
+               })
+            }, 500)
          }
       })
    }
@@ -286,7 +287,7 @@ export class TabCoverage extends Component {
          }
       }
       const tile = enhance_tiles[tile_index]
-      setTimeout(()=>{
+      setTimeout(() => {
          this.setState({
             context_completed: tile.short_code,
             is_all_pattern
