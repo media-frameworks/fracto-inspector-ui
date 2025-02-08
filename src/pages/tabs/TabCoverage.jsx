@@ -152,7 +152,9 @@ export class TabCoverage extends Component {
             stats.interior += 1
             this.setState({all_history, stats})
             this.upload_points(tile.short_code, {}, 'interior')
-            cb(true)
+            setTimeout(() => {
+               cb(true)
+            }, 500)
          } else {
             setTimeout(() => {
                const start = performance.now()
@@ -168,15 +170,13 @@ export class TabCoverage extends Component {
                      this.upload_points(tile.short_code, tile_points, 'updated')
                      delete CACHED_TILES[tile.short_code]
                      this.setState({repair_tile_data: tile_points})
-                  } else {
-                     stats.calculated += 1
-                     this.upload_points(tile.short_code, tile_points, 'new')
-                  }
-                  if (tile_points) {
                      FractoIncrementalRender.tile_to_canvas(
                         ctx, tile, focal_point, scope, 1.0,
                         INSPECTOR_SIZE_PX, INSPECTOR_SIZE_PX, tile_points,
                         canvas_buffer)
+                  } else {
+                     stats.calculated += 1
+                     this.upload_points(tile.short_code, tile_points, 'new')
                   }
                   const end = performance.now()
                   const history_item = FractoTileRunHistory.format_history_item(
