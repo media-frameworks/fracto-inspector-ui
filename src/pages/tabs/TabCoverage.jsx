@@ -291,7 +291,7 @@ export class TabCoverage extends Component {
             context_completed: tile.short_code,
             is_all_pattern
          })
-      }, 200)
+      }, 1000)
    }
 
    render() {
