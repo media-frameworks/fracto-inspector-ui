@@ -115,7 +115,9 @@ export class TabBailiwicks extends Component {
       const {scope, focal_point} = this.props
       const scope_by_two = scope / 2;
       return all_bailiwicks.filter(bailiwick => {
-         const core_point = JSON.parse(bailiwick.core_point)
+         const core_point = typeof bailiwick.core_point === 'string'
+            ? JSON.parse(bailiwick.core_point)
+            : bailiwick.core_point
          if (core_point.x < focal_point.x - scope_by_two) {
             return false;
          }
@@ -201,7 +203,7 @@ export class TabBailiwicks extends Component {
          for (let img_y = 1; img_y < canvas_buffer[img_x].length - 1; img_y++) {
             const y = topmost - increment * img_y
             const [pattern, iteration] = canvas_buffer[img_x][img_y]
-            if (pattern <= 0) {
+            if (pattern <= 1) {
                continue;
             }
             let perimeter = 0
@@ -425,7 +427,7 @@ export class TabBailiwicks extends Component {
    render() {
       const {visible_bailiwicks, all_bailiwicks, list_all, ordering, select_index} = this.state
       const {in_wait, width_px} = this.props
-      const add_bailiwick = visible_bailiwicks.length !== 0 ? '' : <CoolStyles.LinkSpan
+      const add_bailiwick = <CoolStyles.LinkSpan
          onClick={this.add_bailiwick}>
          {'add bailiwick'}
       </CoolStyles.LinkSpan>
@@ -455,13 +457,12 @@ export class TabBailiwicks extends Component {
          on_change={e => this.on_change_ordering(e.target.value)}
       />
       const controls = [
-         add_bailiwick, <Spacer/>,
          list_all_link, <Spacer/>,
          refresh_link, <Spacer/>,
          refine_link, <Spacer/>,
          maximize_link, <Spacer/>,
          sorting_options, <Spacer/>,
-         crawl_link, <Spacer/>,
+         add_bailiwick, <Spacer/>,
       ]
       return <ContentWrapper>
          <ControlsWrapper>

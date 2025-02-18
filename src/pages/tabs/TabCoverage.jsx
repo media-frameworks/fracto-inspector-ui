@@ -116,7 +116,7 @@ export class TabCoverage extends Component {
             clearInterval(interval)
             cb(this.state.is_all_pattern)
          }
-      }, 200)
+      }, 500)
    }
 
    upload_points = (short_code, tile_points, dir) => {
@@ -177,6 +177,10 @@ export class TabCoverage extends Component {
                   } else {
                      stats.calculated += 1
                      this.upload_points(tile.short_code, tile_points, 'new')
+                     FractoIncrementalRender.tile_to_canvas(
+                        ctx, tile, focal_point, scope, 1.0,
+                        INSPECTOR_SIZE_PX, INSPECTOR_SIZE_PX, tile_points,
+                        canvas_buffer)
                   }
                   const end = performance.now()
                   const history_item = FractoTileRunHistory.format_history_item(
@@ -287,12 +291,10 @@ export class TabCoverage extends Component {
          }
       }
       const tile = enhance_tiles[tile_index]
-      setTimeout(() => {
-         this.setState({
-            context_completed: tile.short_code,
-            is_all_pattern
-         })
-      }, 1000)
+      this.setState({
+         context_completed: tile.short_code,
+         is_all_pattern
+      })
    }
 
    render() {

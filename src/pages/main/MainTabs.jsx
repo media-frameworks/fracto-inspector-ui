@@ -10,7 +10,6 @@ import TabBailiwicks from "../tabs/TabBailiwicks"
 import TabCoverage from "../tabs/TabCoverage"
 import TabVideo from "../tabs/TabVideo";
 import TabPatterns from "../tabs/TabPatterns";
-import TabCache from "../tabs/TabCache";
 import TabInventory from "../tabs/TabInventory";
 import TabTest from "../tabs/TabTest";
 
@@ -19,7 +18,6 @@ const TAB_LABEL_ORBITALS = "orbitals";
 const TAB_LABEL_BAILIWICKS = "bailiwicks"
 const TAB_LABEL_COVERAGE = "coverage";
 const TAB_LABEL_PATTERNS = "patterns";
-const TAB_LABEL_CACHE = "cache";
 const TAB_LABEL_INVENTORY = "inventory";
 const TAB_LABEL_TEST = "test";
 const TABS_LIST = [
@@ -28,7 +26,6 @@ const TABS_LIST = [
    TAB_LABEL_PATTERNS,
    TAB_LABEL_BAILIWICKS,
    TAB_LABEL_MEDIA,
-   TAB_LABEL_CACHE,
    TAB_LABEL_INVENTORY,
    TAB_LABEL_TEST,
 ]
@@ -37,9 +34,8 @@ const TAB_INDEX_COVERAGE = 1
 const TAB_INDEX_PATTERNS = 2
 const TAB_INDEX_BAILIWICKS = 3
 const TAB_INDEX_MEDIA = 4
-const TAB_INDEX_CACHE = 5
-const TAB_INDEX_INVENTORY = 6
-const TAB_INDEX_TEST = 7
+const TAB_INDEX_INVENTORY = 5
+const TAB_INDEX_TEST = 6
 
 export class MainTabs extends Component {
 
@@ -117,13 +113,6 @@ export class MainTabs extends Component {
                canvas_buffer={canvas_buffer}
                ctx={ctx}
                in_wait={in_wait}
-            />
-            break;
-         case TAB_INDEX_CACHE:
-            content = <TabCache
-               width_px={width_px}
-               on_focal_point_changed={on_focal_point_changed}
-               on_scope_changed={on_scope_changed}
             />
             break;
          case TAB_INDEX_INVENTORY:
