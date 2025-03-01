@@ -1,6 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import styled from "styled-components";
+import axios from "axios";
+import network from "common/config/network.json";
 
 import {CoolStyles, CoolSelect} from "common/ui/CoolImports";
 import BailiwickData from "fracto/common/feature/BailiwickData";
@@ -8,6 +10,7 @@ import BailiwickList from "fracto/common/ui/BailiwickList";
 import FractoCanvasOverlay from "fracto/common/ui/FractoCanvasOverlay";
 import FractoUtil from "fracto/common/FractoUtil";
 import {INSPECTOR_SIZE_PX} from "../constants";
+import {BailiwickStyles as styles} from 'fracto/common/styles/BailiwickStyles'
 
 const SELECTED_BAILIWICK_KEY = "selected_bailiwick";
 const LS_BAILIWICK_ORDERING_KEY = 'ls_bailiwick_ordering_key'
@@ -74,8 +77,7 @@ export class TabBailiwicks extends Component {
       canvas_bounds: {},
       visible_bailiwicks: [],
       list_all: true,
-      ordering: ORDERING_BY_MOST_RECENT,
-      in_crawl: false,
+      ordering: ORDERING_BY_LG_TO_SM,
       select_index: 0
    }
 
@@ -139,7 +141,8 @@ export class TabBailiwicks extends Component {
       const visible_bailiwicks = this.visible_bailiwicks()
          .sort((a, b) => b.magnitude - a.magnitude)
          .slice(0, 25)
-         .map(bailiwick => JSON.parse(bailiwick.core_point))
+         .map(bailiwick => typeof bailiwick.core_point === 'string'
+            ? JSON.parse(bailiwick.core_point) : bailiwick.core_point)
       this.setState({visible_bailiwicks: visible_bailiwicks})
       FractoCanvasOverlay.render_highlights(ctx, focal_point, scope, visible_bailiwicks)
    }
@@ -150,7 +153,8 @@ export class TabBailiwicks extends Component {
          const canvas = ctx.canvas
          const canvas_bounds = canvas.getBoundingClientRect()
          const sorted = all_bailiwicks
-            .sort((a, b) => a.updated_at > b.updated_at ? 1 : -1)
+            .filter(b => !b.is_node)
+            .sort((a, b) => b.magnitude - a.magnitude)
          console.log('sorted', sorted)
          this.setState({
             all_bailiwicks: sorted,
@@ -168,14 +172,20 @@ export class TabBailiwicks extends Component {
       // if (in_wait) {
       //    return;
       // }
+      localStorage.setItem(SELECTED_BAILIWICK_KEY, `${bailiwick.id}`)
       this.setState({
          bailiwick: bailiwick,
          select_index: select_index
       })
-      const display_settings = JSON.parse(bailiwick.display_settings)
+      const display_settings = typeof bailiwick.display_settings === 'string'
+         ? JSON.parse(bailiwick.display_settings) : bailiwick.display_settings
       on_focal_point_changed(display_settings.focal_point)
-      on_scope_changed(display_settings.scope)
-      localStorage.setItem(SELECTED_BAILIWICK_KEY, `${bailiwick.id}`)
+      const interval = setInterval(() => {
+         if (!this.state.in_wait) {
+            on_scope_changed(display_settings.scope)
+            clearInterval(interval)
+         }
+      }, 100)
    }
 
    find_octave_point = (core_point, candidates) => {
@@ -286,7 +296,8 @@ export class TabBailiwicks extends Component {
 
    maximize_bailiwick = (bailiwick) => {
       const {scope, focal_point, on_scope_changed, on_focal_point_changed, canvas_buffer} = this.props
-      const display_settings = JSON.parse(bailiwick.display_settings)
+      const display_settings = typeof bailiwick.display_settings == 'string'
+         ? JSON.parse(bailiwick.display_settings) : bailiwick.display_settings
       const increment = scope / INSPECTOR_SIZE_PX
       const image_leftmost = focal_point.x - scope / 2
       const focal_image_x = Math.floor((display_settings.focal_point.x - image_leftmost) / increment)
@@ -363,6 +374,7 @@ export class TabBailiwicks extends Component {
 
    on_change_ordering = (ordering) => {
       const {all_bailiwicks} = this.state
+      return;
       const sorted = all_bailiwicks.sort((a, b) => {
          switch (ordering) {
             case ORDERING_BY_LEAST_RECENT:
@@ -397,31 +409,19 @@ export class TabBailiwicks extends Component {
       })
    }
 
-   do_crawl = (index) => {
+   export_now = () => {
       const {all_bailiwicks} = this.state
-      if (index >= all_bailiwicks.length) {
-         console.log('done crawling', index, all_bailiwicks.length)
-         return;
-      }
-      console.log(`crawling index ${index}`)
-      const bailiwick = all_bailiwicks[index]
-      this.select_bailiwick(bailiwick, index)
-      setTimeout(() => {
-         this.do_crawl(index + 1)
-      }, 20000)
-   }
-
-   crawl_bailiwicks = () => {
-      const {all_bailiwicks, in_crawl} = this.state
-      if (in_crawl) {
-         this.setState({in_crawl: false})
-         console.log('done crawling')
-         return
-      }
-      this.on_change_ordering(ORDERING_BY_MOST_RECENT)
-      setTimeout(() => {
-         this.do_crawl(140)
-      }, 5000)
+      const url = `${network["fracto-prod"]}/json_to_manifest.php?filename=all_bailiwicks.json`
+      console.log('export_now', url)
+      axios.post(url, JSON.stringify(all_bailiwicks), {
+         headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Expose-Headers': 'Access-Control-*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+         },
+         mode: 'no-cors',
+         crossdomain: true,
+      })
    }
 
    render() {
@@ -431,6 +431,10 @@ export class TabBailiwicks extends Component {
          onClick={this.add_bailiwick}>
          {'add bailiwick'}
       </CoolStyles.LinkSpan>
+      const export_now = <styles.PublishButton
+         onClick={this.export_now}>
+         {'export now'}
+      </styles.PublishButton>
       const list_all_link = <CoolStyles.LinkSpan
          onClick={e => this.setState({list_all: !list_all})}>
          {list_all ? 'list visible' : 'list all'}
@@ -447,10 +451,6 @@ export class TabBailiwicks extends Component {
          onClick={e => this.maximize_bailiwick(bailiwicks_list[0])}>
          {'maximize'}
       </CoolStyles.LinkSpan> : []
-      const crawl_link = list_all ? <CoolStyles.LinkSpan
-         onClick={e => this.crawl_bailiwicks()}>
-         {'crawl'}
-      </CoolStyles.LinkSpan> : []
       const sorting_options = <CoolSelect
          options={ordering_options}
          value={ordering}
@@ -463,6 +463,7 @@ export class TabBailiwicks extends Component {
          maximize_link, <Spacer/>,
          sorting_options, <Spacer/>,
          add_bailiwick, <Spacer/>,
+         export_now, <Spacer/>,
       ]
       return <ContentWrapper>
          <ControlsWrapper>

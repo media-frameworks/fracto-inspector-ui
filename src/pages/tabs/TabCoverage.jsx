@@ -64,6 +64,7 @@ export class TabCoverage extends Component {
       is_all_pattern: false,
       context_completed: '',
       stats: STATS_INIT,
+      all_interiors: false,
    }
 
    on_select_row = (new_selected_row) => {
@@ -133,7 +134,7 @@ export class TabCoverage extends Component {
    }
 
    enhance = (tile, cb) => {
-      const {all_history, tile_index, stats, repair_tiles} = this.state
+      const {all_history, tile_index, stats, repair_tiles,all_interiors} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
       if (all_history.length > 100) {
          all_history.pop();
@@ -143,7 +144,7 @@ export class TabCoverage extends Component {
       this.wait_for_context(tile.short_code, is_all_pattern => {
          if (is_all_pattern === -1) {
             cb(false)
-         } else if (is_all_pattern) {
+         } else if (is_all_pattern && !all_interiors) {
             // skip it
             const history_item = FractoTileRunHistory.format_history_item(
                tile, "coverage", "skipping deep interior tile", tile_index)
