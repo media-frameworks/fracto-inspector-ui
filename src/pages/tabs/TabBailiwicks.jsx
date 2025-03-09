@@ -57,6 +57,36 @@ const ordering_options = [
    {label: ORDERING_BY_ORBITAL_LOW_TO_HIGH, value: ORDERING_BY_ORBITAL_LOW_TO_HIGH},
 ]
 
+const order_bailiwicks = (all_bailiwicks, ordering) => {
+   return all_bailiwicks.sort((a, b) => {
+      switch (ordering) {
+         case ORDERING_BY_LEAST_RECENT:
+            return a.updated_at > b.updated_at ? 1 : -1
+         case ORDERING_BY_MOST_RECENT:
+            return a.updated_at > b.updated_at ? -1 : 1
+         case ORDERING_BY_SM_TO_LG:
+            return a.magnitude > b.magnitude ? 1 : -1
+         case ORDERING_BY_LG_TO_SM:
+            return a.magnitude > b.magnitude ? -1 : 1
+         case ORDERING_BY_CREATED_FIRST:
+            return a.id > b.id ? 1 : -1
+         case ORDERING_BY_CREATED_LAST:
+            return a.id > b.id ? -1 : 1
+         case ORDERING_BY_ORBITAL_HIGH_TO_LOW:
+            if (a.pattern === b.pattern) {
+               return a.magnitude > b.magnitude ? 1 : -1
+            }
+            return a.pattern > b.pattern ? -1 : 1
+         default:
+         case ORDERING_BY_ORBITAL_LOW_TO_HIGH:
+            if (a.pattern === b.pattern) {
+               return a.magnitude > b.magnitude ? -1 : 1
+            }
+            return a.pattern > b.pattern ? 1 : -1
+      }
+   })
+}
+
 export class TabBailiwicks extends Component {
 
    static propTypes = {
@@ -78,7 +108,8 @@ export class TabBailiwicks extends Component {
       visible_bailiwicks: [],
       list_all: true,
       ordering: ORDERING_BY_LG_TO_SM,
-      select_index: 0
+      select_index: 0,
+      is_published: false,
    }
 
    componentDidMount() {
@@ -91,9 +122,8 @@ export class TabBailiwicks extends Component {
    }
 
    componentDidUpdate(prevProps, prevState, snapshot) {
-      const {all_bailiwicks} = this.state
       const {update_counter, scope, focal_point, in_wait} = this.props
-      // if (!all_bailiwicks.length) {
+      // if (!all_bailiwicksall_bailiwicks.length) {
       //    this.fetch_bailiwicks()
       //    return;
       // }
@@ -148,30 +178,36 @@ export class TabBailiwicks extends Component {
    }
 
    fetch_bailiwicks = () => {
+      const {ordering} = this.state
       const {ctx} = this.props
       BailiwickData.fetch_bailiwicks(all_bailiwicks => {
          const canvas = ctx.canvas
          const canvas_bounds = canvas.getBoundingClientRect()
-         const sorted = all_bailiwicks
-            .filter(b => !b.is_node)
-            .sort((a, b) => b.magnitude - a.magnitude)
-         console.log('sorted', sorted)
+         const sorted = all_bailiwicks.filter(b => !b.is_node)
          this.setState({
             all_bailiwicks: sorted,
             canvas_bounds: canvas_bounds
          })
          setTimeout(() => {
+            this.on_change_ordering(ordering)
             this.decorate_canvas()
-         }, 1000)
+         }, 100)
       })
    }
 
+   update_display = (focal_point, scope) => {
+      const {on_focal_point_changed, on_scope_changed} = this.props
+      on_focal_point_changed(focal_point)
+      on_scope_changed(scope)
+      const interval = setInterval(() => {
+         if (!this.props.in_wait) {
+            on_scope_changed(scope)
+            clearInterval(interval)
+         }
+      }, 100)
+   }
+
    select_bailiwick = (bailiwick, select_index) => {
-      // const {selected_nodes} = this.state
-      const {on_focal_point_changed, on_scope_changed, in_wait} = this.props
-      // if (in_wait) {
-      //    return;
-      // }
       localStorage.setItem(SELECTED_BAILIWICK_KEY, `${bailiwick.id}`)
       this.setState({
          bailiwick: bailiwick,
@@ -179,13 +215,7 @@ export class TabBailiwicks extends Component {
       })
       const display_settings = typeof bailiwick.display_settings === 'string'
          ? JSON.parse(bailiwick.display_settings) : bailiwick.display_settings
-      on_focal_point_changed(display_settings.focal_point)
-      const interval = setInterval(() => {
-         if (!this.state.in_wait) {
-            on_scope_changed(display_settings.scope)
-            clearInterval(interval)
-         }
-      }, 100)
+      this.update_display(display_settings.focal_point, display_settings.scope)
    }
 
    find_octave_point = (core_point, candidates) => {
@@ -251,7 +281,6 @@ export class TabBailiwicks extends Component {
    }
 
    save_bailiwick = (core_point, octave_point, pattern, id = 0) => {
-      const {on_focal_point_changed, on_scope_changed} = this.props
       const x_diff = core_point.x - octave_point.x
       const y_diff = core_point.y - octave_point.y
       const magnitude = Math.sqrt(x_diff * x_diff + y_diff * y_diff)
@@ -273,10 +302,10 @@ export class TabBailiwicks extends Component {
       if (id) {
          new_bailiwick.id = id
       }
+      this.update_display(new_bailiwick.display_settings.focal_point,
+         new_bailiwick.display_settings.scope)
       BailiwickData.save_bailiwick(new_bailiwick, 0, result => {
          console.log("BailiwickData.save_bailiwick", result)
-         on_scope_changed(new_bailiwick.display_settings.scope)
-         on_focal_point_changed(new_bailiwick.display_settings.focal_point)
       })
    }
 
@@ -365,43 +394,15 @@ export class TabBailiwicks extends Component {
       }
       const new_width = rightmost_bailiwick - leftmost_bailiwick
       const new_height = topmost_bailiwick - bottommost_bailiwick
-      on_scope_changed(new_width > new_height ? new_width : new_height)
-      on_focal_point_changed({
+      this.update_display({
          x: leftmost_bailiwick + new_width / 2,
          y: topmost_bailiwick - new_height / 2
-      })
+      }, new_width > new_height ? new_width : new_height)
    }
 
    on_change_ordering = (ordering) => {
       const {all_bailiwicks} = this.state
-      return;
-      const sorted = all_bailiwicks.sort((a, b) => {
-         switch (ordering) {
-            case ORDERING_BY_LEAST_RECENT:
-               return a.updated_at > b.updated_at ? 1 : -1
-            case ORDERING_BY_MOST_RECENT:
-               return a.updated_at > b.updated_at ? -1 : 1
-            case ORDERING_BY_SM_TO_LG:
-               return a.magnitude > b.magnitude ? 1 : -1
-            case ORDERING_BY_LG_TO_SM:
-               return a.magnitude > b.magnitude ? -1 : 1
-            case ORDERING_BY_CREATED_FIRST:
-               return a.id > b.id ? 1 : -1
-            case ORDERING_BY_CREATED_LAST:
-               return a.id > b.id ? -1 : 1
-            case ORDERING_BY_ORBITAL_HIGH_TO_LOW:
-               if (a.pattern === b.pattern) {
-                  return a.magnitude > b.magnitude ? 1 : -1
-               }
-               return a.pattern > b.pattern ? -1 : 1
-            default:
-            case ORDERING_BY_ORBITAL_LOW_TO_HIGH:
-               if (a.pattern === b.pattern) {
-                  return a.magnitude > b.magnitude ? -1 : 1
-               }
-               return a.pattern > b.pattern ? 1 : -1
-         }
-      })
+      const sorted = order_bailiwicks(all_bailiwicks, ordering)
       localStorage.setItem(LS_BAILIWICK_ORDERING_KEY, ordering)
       this.setState({
          ordering,
@@ -424,25 +425,38 @@ export class TabBailiwicks extends Component {
       })
    }
 
+   on_list_all = () => {
+      const {ordering, list_all} = this.state
+      this.setState({list_all: !list_all})
+      this.on_change_ordering(ordering)
+   }
+
+   set_published = () => {
+      const {is_published, ordering} = this.state
+      this.setState({is_published: !is_published})
+      this.on_change_ordering(ordering)
+   }
+
    render() {
-      const {visible_bailiwicks, all_bailiwicks, list_all, ordering, select_index} = this.state
+      const {is_published, all_bailiwicks, list_all, ordering, select_index} = this.state
       const {in_wait, width_px} = this.props
       const add_bailiwick = <CoolStyles.LinkSpan
          onClick={this.add_bailiwick}>
          {'add bailiwick'}
       </CoolStyles.LinkSpan>
-      const export_now = <styles.PublishButton
+      const export_now = <styles.ExportButton
          onClick={this.export_now}>
          {'export now'}
-      </styles.PublishButton>
+      </styles.ExportButton>
       const list_all_link = <CoolStyles.LinkSpan
-         onClick={e => this.setState({list_all: !list_all})}>
+         onClick={e => this.on_list_all()}>
          {list_all ? 'list visible' : 'list all'}
       </CoolStyles.LinkSpan>
       const refresh_link = <CoolStyles.LinkSpan onClick={this.fetch_bailiwicks}>
          {'refresh'}
       </CoolStyles.LinkSpan>
-      const bailiwicks_list = list_all ? all_bailiwicks : this.visible_bailiwicks()
+      const published_list = all_bailiwicks.filter(b => is_published ? b.published_at : !b.published_at)
+      const bailiwicks_list = list_all ? published_list : this.visible_bailiwicks()
       const refine_link = bailiwicks_list.length === 1 ? <CoolStyles.LinkSpan
          onClick={e => this.refine_bailiwick(bailiwicks_list[0])}>
          {'refine'}
@@ -456,12 +470,29 @@ export class TabBailiwicks extends Component {
          value={ordering}
          on_change={e => this.on_change_ordering(e.target.value)}
       />
+      const published = [
+         <styles.CheckboxWrapper
+            onClick={this.set_published}
+            key={`checkbox-inline`}>
+            <input
+               type={"checkbox"}
+               name={`checkbox-inline`}
+               checked={is_published ? 1 : 0}
+            />
+         </styles.CheckboxWrapper>,
+         <styles.CheckboxLabel
+            onClick={this.set_inline}
+            key={`label-inline`}>
+            {`published`}
+         </styles.CheckboxLabel>,
+      ]
       const controls = [
          list_all_link, <Spacer/>,
          refresh_link, <Spacer/>,
          refine_link, <Spacer/>,
          maximize_link, <Spacer/>,
          sorting_options, <Spacer/>,
+         published, <Spacer/>,
          add_bailiwick, <Spacer/>,
          export_now, <Spacer/>,
       ]

@@ -13,6 +13,7 @@ import FractoTileRunHistory from "../../fracto/common/tile/FractoTileRunHistory"
 import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementalRender"
 import FractoTileCoverage from "../../fracto/common/tile/FractoTileCoverage";
 import FractoTileCache, {CACHED_TILES} from "../../fracto/common/data/FractoTileCache";
+import ReactTimeAgo from "react-time-ago";
 
 const SectionWrapper = styled(CoolStyles.Block)`
     ${CoolStyles.align_center}
@@ -26,6 +27,14 @@ const SummaryWrapper = styled(CoolStyles.Block)`
     font-size: 1.25rem;
     margin-left: 1rem;
     color: #888888;
+`;
+
+const StatsSpan = styled(CoolStyles.Block)`
+    ${CoolStyles.monospace}
+    ${CoolStyles.uppercase}
+    font-size: 0.85rem;
+    color: #444444;
+    margin-left: 1rem;
 `;
 
 const STATS_INIT = {
@@ -134,7 +143,7 @@ export class TabCoverage extends Component {
    }
 
    enhance = (tile, cb) => {
-      const {all_history, tile_index, stats, repair_tiles,all_interiors} = this.state
+      const {all_history, tile_index, stats, repair_tiles, all_interiors} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
       if (all_history.length > 100) {
          all_history.pop();
@@ -220,7 +229,10 @@ export class TabCoverage extends Component {
    }
 
    render_run_history_summary = () => {
-      const {all_history, tile_index, run_tile_index_start, run_start, stats} = this.state;
+      const {
+         enhance_tiles, repair_tiles,
+         all_history, tile_index, run_tile_index_start, run_start, stats
+      } = this.state;
       const timer_now = performance.now()
       const run_count = tile_index - run_tile_index_start
       const tiles_per_minute = 60 * 1000 * (run_count) / (timer_now - run_start)
@@ -231,9 +243,23 @@ export class TabCoverage extends Component {
       const calculated_stats = stats.calculated ? `${stats.calculated} new` : ''
       const all_stats = [blank_stats, interior_stats, updated_stats, calculated_stats]
       const stats_str = all_stats.filter(stat => stat.length > 1).join(', ')
-      return <SummaryWrapper>
-         {!all_history.length ? '' : `${run_count} results this run (${rounded_tiles_per_minute} tiles/min): ${stats_str}`}
-      </SummaryWrapper>
+      const tile_count = repair_tiles?.length || enhance_tiles.length
+      let time_stats = ''
+      if (run_count && run_start) {
+         const time_to_complete = (timer_now - run_start) * tile_count / run_count
+         time_stats = [
+            'Started ',
+            <ReactTimeAgo date={Date.now() - (timer_now - run_start)}/>,
+            ', may complete ',
+            <ReactTimeAgo date={Date.now() + time_to_complete}/>,
+         ]
+      }
+      return [
+         <SummaryWrapper>
+            {!all_history.length ? '' : `${run_count} results this run (${rounded_tiles_per_minute} tiles/min): ${stats_str}`}
+         </SummaryWrapper>,
+         <StatsSpan>{time_stats}</StatsSpan>
+      ]
    }
 
    on_automate = (automate) => {
