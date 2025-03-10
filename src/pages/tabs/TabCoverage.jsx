@@ -246,11 +246,13 @@ export class TabCoverage extends Component {
       const tile_count = repair_tiles?.length || enhance_tiles.length
       let time_stats = ''
       if (run_count && run_start) {
-         const time_to_complete = (timer_now - run_start) * tile_count / run_count
+         const time_to_complete =
+            (timer_now - run_start)
+            * (tile_count - run_count) / (run_count + 1)
          time_stats = [
             'Started ',
             <ReactTimeAgo date={Date.now() - (timer_now - run_start)}/>,
-            ', may complete ',
+            run_count < tile_count ? ', may complete ' : ', might have completed ',
             <ReactTimeAgo date={Date.now() + time_to_complete}/>,
          ]
       }
