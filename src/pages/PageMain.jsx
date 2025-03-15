@@ -93,7 +93,8 @@ export class PageMain extends Component {
       console.log("on_resize", left_width, right_width)
       this.setState({
          left_width: left_width,
-         right_width: right_width
+         right_width: right_width,
+         inspector_ready: true,
       })
    }
 

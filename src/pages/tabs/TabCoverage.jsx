@@ -252,7 +252,7 @@ export class TabCoverage extends Component {
          time_stats = [
             'Started ',
             <ReactTimeAgo date={Date.now() - (timer_now - run_start)}/>,
-            run_count < tile_count ? ', may complete ' : ', might have completed ',
+            run_count < tile_count - 1 ? ', may complete ' : ', might have completed ',
             <ReactTimeAgo date={Date.now() + time_to_complete}/>,
          ]
       }

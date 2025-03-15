@@ -107,7 +107,7 @@ export class TabBailiwicks extends Component {
       canvas_bounds: {},
       visible_bailiwicks: [],
       list_all: true,
-      ordering: ORDERING_BY_LG_TO_SM,
+      ordering: ORDERING_BY_LEAST_RECENT,
       select_index: 0,
       is_published: false,
    }

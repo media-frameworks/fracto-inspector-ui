@@ -1,6 +1,6 @@
 import network from "../common/config/network.json";
 
-export const INSPECTOR_SIZE_PX = 750;
+export const INSPECTOR_SIZE_PX = 650;
 
 // export const URL_BASE = network.dev_server_url;
 // export const INDEXED_TILES_URL = `${URL_BASE}/directory/indexed.csv`;
