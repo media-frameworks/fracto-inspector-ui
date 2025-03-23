@@ -1,8 +1,8 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-// import styled from "styled-components";
+import styled from "styled-components";
 
-import {CoolTabs} from "../../common/ui/CoolImports";
+import {CoolStyles, CoolTabs} from "../../common/ui/CoolImports";
 
 import FractoOrbitalsList from "fracto/common/ui/FractoOrbitalsList";
 
@@ -36,6 +36,11 @@ const TAB_INDEX_BAILIWICKS = 3
 const TAB_INDEX_MEDIA = 4
 const TAB_INDEX_INVENTORY = 5
 const TAB_INDEX_TEST = 6
+
+const SelectedContentWrapper = styled(CoolStyles.Block)`
+    overflow: scroll;
+    height: fit-content;
+`
 
 export class MainTabs extends Component {
 
@@ -142,11 +147,14 @@ export class MainTabs extends Component {
          default:
             break;
       }
+      const selected_content = <SelectedContentWrapper>
+         {content}
+      </SelectedContentWrapper>
       return <CoolTabs
          width_px={width_px}
          labels={TABS_LIST}
          on_tab_select={tab_index => this.setState({tab_index: tab_index})}
-         selected_content={content}
+         selected_content={selected_content}
          tab_index={tab_index}
          style={{
             maxWidth: `${width_px}px`,
