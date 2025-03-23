@@ -150,6 +150,7 @@ export class MainTabs extends Component {
          tab_index={tab_index}
          style={{
             maxWidth: `${width_px}px`,
+            height: `${1000}px`,
             backgroundColor: 'rgba(0,0,0,0)'
          }}
       />
