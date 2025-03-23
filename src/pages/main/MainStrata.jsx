@@ -70,7 +70,7 @@ export class MainStrata extends Component {
    };
 
    componentDidMount() {
-      const initial_stratum = this.create_stratum(SCOPE_FACTOR)
+      const initial_stratum = this.create_stratum(SCOPE_FACTOR * 4)
       this.setState({strata: [initial_stratum]})
       setTimeout(() => {
          this.update_strata()
