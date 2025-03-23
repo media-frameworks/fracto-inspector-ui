@@ -110,7 +110,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 150)
+      }, 1000)
    }
 
    wait_for_context = (short_code, cb) => {
@@ -168,10 +168,10 @@ export class TabCoverage extends Component {
          } else {
             setTimeout(() => {
                const start = performance.now()
-               FractoTileGenerate.begin(tile, (history, tile_points) => {
+               const is_updated = repair_tiles.length > 0
+               FractoTileGenerate.begin(tile, is_updated, (history, tile_points) => {
                   // console.log("history, tile_points", history, tile_points)
                   const is_blank = history.indexOf('blank') > 0
-                  const is_updated = repair_tiles.length > 0
                   if (is_blank) {
                      stats.blank += 1
                      this.upload_points(tile.short_code, {}, 'blank')
