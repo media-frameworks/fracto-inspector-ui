@@ -43,7 +43,7 @@ export class PageAppStyles {
        left: 0;
        right: 0;
        background-color: #fafafa;
-       overflow-y: auto;
+       overflow-y: scroll;
    `;
 
    static ContentWrapper = styled(CoolStyles.Block)`
@@ -61,6 +61,8 @@ export class PageAppStyles {
        top: ${HEADER_BAR_HEIGHT_REM}rem;
        bottom: 0;
        right: 0;
+       overflow-y: scroll;
+       height: 3000px;
    `;
 
    static LeftSideWrapper = styled(CoolStyles.InlineBlock)`

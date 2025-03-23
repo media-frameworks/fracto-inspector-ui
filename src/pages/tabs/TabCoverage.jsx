@@ -91,7 +91,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 250)
+      }, 150)
    }
 
    init_stats = () => {
@@ -110,7 +110,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 1000)
+      }, 150)
    }
 
    wait_for_context = (short_code, cb) => {
@@ -126,7 +126,7 @@ export class TabCoverage extends Component {
             clearInterval(interval)
             cb(this.state.is_all_pattern)
          }
-      }, 500)
+      }, 150)
    }
 
    upload_points = (short_code, tile_points, dir) => {
@@ -164,7 +164,7 @@ export class TabCoverage extends Component {
             this.upload_points(tile.short_code, {}, 'interior')
             setTimeout(() => {
                cb(true)
-            }, 500)
+            }, 150)
          } else {
             setTimeout(() => {
                const start = performance.now()
@@ -200,7 +200,7 @@ export class TabCoverage extends Component {
                   this.setState({history, tile_points})
                   cb(true)
                })
-            }, 500)
+            }, 150)
          }
       })
    }
