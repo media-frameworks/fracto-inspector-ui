@@ -105,7 +105,7 @@ export class TabCoverage extends Component {
       this.setState({tile_index: new_index})
       const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
       this.setState({repair_tile_data: tile_data})
-      this.init_stats()
+      // this.init_stats()
       setTimeout(() => {
          if (cb) {
             cb(true)

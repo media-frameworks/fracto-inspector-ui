@@ -62,7 +62,6 @@ export class PageAppStyles {
        bottom: 0;
        right: 0;
        overflow-y: scroll;
-       height: 5000px;
    `;
 
    static LeftSideWrapper = styled(CoolStyles.InlineBlock)`

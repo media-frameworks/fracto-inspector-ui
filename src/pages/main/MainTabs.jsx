@@ -37,9 +37,8 @@ const TAB_INDEX_MEDIA = 4
 const TAB_INDEX_INVENTORY = 5
 const TAB_INDEX_TEST = 6
 
-const SelectedContentWrapper = styled(CoolStyles.Block)`
-    overflow: scroll;
-    height: 5000px;
+const SelectedContentWrapper = styled(CoolStyles.InlineBlock)`
+    overflow: auto;
 `
 
 export class MainTabs extends Component {
