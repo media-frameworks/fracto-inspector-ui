@@ -44,6 +44,8 @@ const STATS_INIT = {
    calculated: 0,
 }
 
+const GENERAL_TIMEOUT_MS = 100
+
 export class TabCoverage extends Component {
 
    static propTypes = {
@@ -91,7 +93,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 150)
+      }, GENERAL_TIMEOUT_MS)
    }
 
    init_stats = () => {
@@ -110,7 +112,7 @@ export class TabCoverage extends Component {
          if (cb) {
             cb(true)
          }
-      }, 150)
+      }, GENERAL_TIMEOUT_MS)
    }
 
    wait_for_context = (short_code, cb) => {
@@ -164,7 +166,7 @@ export class TabCoverage extends Component {
             this.upload_points(tile.short_code, {}, 'interior')
             setTimeout(() => {
                cb(true)
-            }, 150)
+            }, GENERAL_TIMEOUT_MS)
          } else {
             setTimeout(() => {
                const start = performance.now()
@@ -200,7 +202,7 @@ export class TabCoverage extends Component {
                   this.setState({history, tile_points})
                   cb(true)
                })
-            }, 150)
+            }, GENERAL_TIMEOUT_MS)
          }
       })
    }
