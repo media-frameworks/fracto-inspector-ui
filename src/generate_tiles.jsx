@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const FractoTileGenerate = require("./fracto/common/tile/FractoTileGenerate.jsx");
+import * as fs from 'fs';
+import * as path from 'path';
+import FractoTileGenerate from "./fracto/common/tile/FractoTileGenerate.jsx";
 
 const ROOT_DIRECTORY = '/var/www/html';
 

@@ -122,6 +122,7 @@ export class TabPatterns extends Component {
          return []
       }
       const fracto_values = FractoFastCalc.calc(click_point.x, click_point.y)
+      const super_fracto_values = FractoFastCalc.super_calc(click_point.x, click_point.y)
       const P = new Complex(click_point.x, click_point.y)
 
       const under_radical = P.scale(-4).offset(1, 0)
@@ -134,7 +135,8 @@ export class TabPatterns extends Component {
       const Q2 = negative_radical2.offset(-1, 0).scale(0.5)
       const Q2_center = {x: Q2.re, y: Q2.im}
 
-      console.log('fracto_values.orbital_points', fracto_values.orbital_points)
+      console.log('fracto_values.fracto_values', fracto_values)
+      console.log('fracto_values.super_calc', super_fracto_values)
       return [
          this.click_point_chart(
             fracto_values.orbital_points,

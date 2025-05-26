@@ -12,6 +12,7 @@ import TabVideo from "../tabs/TabVideo";
 import TabPatterns from "../tabs/TabPatterns";
 import TabInventory from "../tabs/TabInventory";
 import TabTest from "../tabs/TabTest";
+import TabSearch from "../tabs/TabSearch";
 
 const TAB_LABEL_MEDIA = "video";
 const TAB_LABEL_ORBITALS = "orbitals";
@@ -20,6 +21,7 @@ const TAB_LABEL_COVERAGE = "coverage";
 const TAB_LABEL_PATTERNS = "patterns";
 const TAB_LABEL_INVENTORY = "inventory";
 const TAB_LABEL_TEST = "test";
+const TAB_LABEL_SEARCH = "search";
 const TABS_LIST = [
    TAB_LABEL_ORBITALS,
    TAB_LABEL_COVERAGE,
@@ -28,6 +30,7 @@ const TABS_LIST = [
    TAB_LABEL_MEDIA,
    TAB_LABEL_INVENTORY,
    TAB_LABEL_TEST,
+   TAB_LABEL_SEARCH,
 ]
 const TAB_INDEX_ORBITALS = 0
 const TAB_INDEX_COVERAGE = 1
@@ -36,6 +39,7 @@ const TAB_INDEX_BAILIWICKS = 3
 const TAB_INDEX_MEDIA = 4
 const TAB_INDEX_INVENTORY = 5
 const TAB_INDEX_TEST = 6
+const TAB_INDEX_SEARCH = 7
 
 const SelectedContentWrapper = styled(CoolStyles.InlineBlock)`
     overflow: auto;
@@ -129,6 +133,15 @@ export class MainTabs extends Component {
          case TAB_INDEX_TEST:
             content = <TabTest
                width_px={width_px}
+               on_focal_point_changed={on_focal_point_changed}
+               on_scope_changed={on_scope_changed}
+            />
+            break;
+         case TAB_INDEX_SEARCH:
+            content = <TabSearch
+               width_px={width_px}
+               focal_point={focal_point}
+               scope={scope}
                on_focal_point_changed={on_focal_point_changed}
                on_scope_changed={on_scope_changed}
             />
