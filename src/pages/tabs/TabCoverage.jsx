@@ -116,6 +116,8 @@ export class TabCoverage extends Component {
    }
 
    wait_for_context = (short_code, cb) => {
+      const {repair_tiles} = this.state
+      const is_updated = repair_tiles.length > 0
       let countdown = 50;
       const interval = setInterval(() => {
          countdown--;
@@ -308,7 +310,7 @@ export class TabCoverage extends Component {
    }
 
    on_context_rendered = (canvas_buffer, ctx) => {
-      const {tile_index, enhance_tiles} = this.state
+      const {tile_index, enhance_tiles, repair_tiles} = this.state
       let is_all_pattern = true
       for (let img_x = 0; img_x < canvas_buffer.length; img_x++) {
          for (let img_y = 0; img_y < canvas_buffer[img_x].length; img_y++) {
@@ -321,7 +323,8 @@ export class TabCoverage extends Component {
             break;
          }
       }
-      const tile = enhance_tiles[tile_index]
+      const is_updated = repair_tiles.length > 0
+      const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
       this.setState({
          context_completed: tile.short_code,
          is_all_pattern
@@ -375,6 +378,7 @@ export class TabCoverage extends Component {
             tile_size_px={CONTEXT_SIZE_PX}
             on_render_tile={this.on_render_repair_tile}
             all_tiles={sorted}
+            on_context_rendered={this.on_context_rendered}
             on_automate={this.on_automate}
          />
       }
