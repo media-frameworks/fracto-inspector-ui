@@ -44,7 +44,7 @@ const STATS_INIT = {
    calculated: 0,
 }
 
-const GENERAL_TIMEOUT_MS = 100
+const GENERAL_TIMEOUT_MS = 50
 
 export class TabCoverage extends Component {
 
@@ -105,8 +105,8 @@ export class TabCoverage extends Component {
    on_select_repair_tile = async (new_index, cb) => {
       const {repair_tiles} = this.state
       this.setState({tile_index: new_index})
-      const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
-      this.setState({repair_tile_data: tile_data})
+      // const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
+      // this.setState({repair_tile_data: tile_data})
       // this.init_stats()
       setTimeout(() => {
          if (cb) {
