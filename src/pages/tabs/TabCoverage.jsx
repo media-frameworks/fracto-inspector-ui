@@ -128,9 +128,10 @@ export class TabCoverage extends Component {
          }
          if (short_code === this.state.context_completed) {
             clearInterval(interval)
+            console.log('wait_for_context', countdown)
             cb(this.state.is_all_pattern)
          }
-      }, 150)
+      }, 50)
    }
 
    upload_points = (short_code, tile_points, dir) => {
@@ -311,6 +312,14 @@ export class TabCoverage extends Component {
 
    on_context_rendered = (canvas_buffer, ctx) => {
       const {tile_index, enhance_tiles, repair_tiles} = this.state
+      const is_updated = repair_tiles.length > 0
+      if (is_updated){
+         const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
+         this.setState({
+            context_completed: tile.short_code,
+         })
+         return;
+      }
       let is_all_pattern = true
       for (let img_x = 0; img_x < canvas_buffer.length; img_x++) {
          for (let img_y = 0; img_y < canvas_buffer[img_x].length; img_y++) {
@@ -323,8 +332,6 @@ export class TabCoverage extends Component {
             break;
          }
       }
-      const is_updated = repair_tiles.length > 0
-      const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
       this.setState({
          context_completed: tile.short_code,
          is_all_pattern
