@@ -4,6 +4,8 @@ import styled from "styled-components";
 import axios from "axios";
 import network from "../../common/config/network.json";
 
+const moment = require('moment');
+
 import {CoolStyles} from "common/ui/CoolImports";
 import {INSPECTOR_SIZE_PX} from "../constants";
 import FractoTileRender from "../../fracto/common/tile/FractoTileRender";
@@ -254,11 +256,15 @@ export class TabCoverage extends Component {
          const time_to_complete =
             (timer_now - run_start)
             * (tile_count - run_count) / (run_count + 1)
+         const now = Date.now()
+         const then = new Date(now + time_to_complete);
+         const dateString = then.toString()
          time_stats = [
             'Started ',
             <ReactTimeAgo date={Date.now() - (timer_now - run_start)}/>,
             run_count < tile_count - 1 ? ', may complete ' : ', might have completed ',
             <ReactTimeAgo date={Date.now() + time_to_complete}/>,
+            ` (${dateString.substring(0, dateString.indexOf('GMT') - 1)})`
          ]
       }
       return [
@@ -313,7 +319,7 @@ export class TabCoverage extends Component {
    on_context_rendered = (canvas_buffer, ctx) => {
       const {tile_index, enhance_tiles, repair_tiles} = this.state
       const is_updated = repair_tiles.length > 0
-      if (is_updated){
+      if (is_updated) {
          const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
          this.setState({
             context_completed: tile.short_code,
