@@ -290,9 +290,14 @@ export class TabCoverage extends Component {
    }
 
    on_tile_set_changed = (tile_set, level, is_repair) => {
+      const sorted = tile_set.sort((a, b) => {
+         return a.bounds.left === b.bounds.left ?
+            (a.bounds.top > b.bounds.top ? -1 : 1) :
+            (a.bounds.left > b.bounds.left ? 1 : -1)
+      })
       if (is_repair) {
          this.setState({
-            repair_tiles: tile_set,
+            repair_tiles: sorted,
             enhance_tiles: [],
             repair_level: level,
             tile_index: 0,
@@ -300,7 +305,7 @@ export class TabCoverage extends Component {
          })
       } else {
          this.setState({
-            enhance_tiles: tile_set,
+            enhance_tiles: sorted,
             repair_tiles: [],
             enhance_level: level,
             tile_index: 0,
@@ -361,11 +366,11 @@ export class TabCoverage extends Component {
       />
       let automate = []
       if (enhance_tiles.length) {
-         const sorted = enhance_tiles.sort((a, b) => {
-            return a.bounds.left === b.bounds.left ?
-               (a.bounds.top > b.bounds.top ? -1 : 1) :
-               (a.bounds.left > b.bounds.left ? 1 : -1)
-         })
+         // const sorted = enhance_tiles.sort((a, b) => {
+         //    return a.bounds.left === b.bounds.left ?
+         //       (a.bounds.top > b.bounds.top ? -1 : 1) :
+         //       (a.bounds.left > b.bounds.left ? 1 : -1)
+         // })
          automate = <FractoTileAutomate
             tile_action={this.enhance}
             tile_index={tile_index}
@@ -373,16 +378,17 @@ export class TabCoverage extends Component {
             on_tile_select={this.on_select_tile}
             tile_size_px={CONTEXT_SIZE_PX}
             on_render_tile={this.on_render_tile}
-            all_tiles={sorted}
+            all_tiles={enhance_tiles}
             on_context_rendered={this.on_context_rendered}
             on_automate={this.on_automate}
          />
       } else if (repair_tiles.length) {
-         const sorted = repair_tiles.sort((a, b) => {
-            return a.bounds.left === b.bounds.left ?
-               (a.bounds.top > b.bounds.top ? -1 : 1) :
-               (a.bounds.left > b.bounds.left ? 1 : -1)
-         })
+         // console.log('sorting repair_tiles')
+         // const sorted = repair_tiles.sort((a, b) => {
+         //    return a.bounds.left === b.bounds.left ?
+         //       (a.bounds.top > b.bounds.top ? -1 : 1) :
+         //       (a.bounds.left > b.bounds.left ? 1 : -1)
+         // })
          automate = <FractoTileAutomate
             tile_action={this.enhance}
             tile_index={tile_index}
@@ -390,7 +396,7 @@ export class TabCoverage extends Component {
             on_tile_select={this.on_select_repair_tile}
             tile_size_px={CONTEXT_SIZE_PX}
             on_render_tile={this.on_render_repair_tile}
-            all_tiles={sorted}
+            all_tiles={repair_tiles}
             on_context_rendered={this.on_context_rendered}
             on_automate={this.on_automate}
          />
