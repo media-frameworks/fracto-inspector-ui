@@ -16,6 +16,7 @@ import FractoIncrementalRender from "../../fracto/common/render/FractoIncrementa
 import FractoTileCoverage from "../../fracto/common/tile/FractoTileCoverage";
 import FractoTileCache, {CACHED_TILES} from "../../fracto/common/data/FractoTileCache";
 import ReactTimeAgo from "react-time-ago";
+import FractoTileDetail from "../../fracto/common/tile/FractoTileDetail";
 
 const SectionWrapper = styled(CoolStyles.Block)`
     ${CoolStyles.align_center}
@@ -44,6 +45,7 @@ const STATS_INIT = {
    interior: 0,
    updated: 0,
    calculated: 0,
+   detailed: 0,
 }
 
 const GENERAL_TIMEOUT_MS = 50
@@ -68,12 +70,15 @@ export class TabCoverage extends Component {
       all_history: [],
       enhance_tiles: [],
       repair_tiles: [],
+      detail_tiles: [],
       enhance_level: 0,
       repair_level: 0,
+      detail_level: 0,
       run_start: null,
       run_tile_index_start: 0,
       selected_row: -1,
       repair_tile_data: [],
+      detail_tile_data: [],
       is_all_pattern: false,
       context_completed: '',
       stats: STATS_INIT,
@@ -107,9 +112,16 @@ export class TabCoverage extends Component {
    on_select_repair_tile = async (new_index, cb) => {
       const {repair_tiles} = this.state
       this.setState({tile_index: new_index})
-      // const tile_data = await FractoTileCache.get_tile(repair_tiles[new_index].short_code)
-      // this.setState({repair_tile_data: tile_data})
-      // this.init_stats()
+      setTimeout(() => {
+         if (cb) {
+            cb(true)
+         }
+      }, GENERAL_TIMEOUT_MS)
+   }
+
+   on_select_detail_tile = async (new_index, cb) => {
+      const {detail_tiles} = this.state
+      this.setState({tile_index: new_index})
       setTimeout(() => {
          if (cb) {
             cb(true)
@@ -135,6 +147,18 @@ export class TabCoverage extends Component {
          }
       }, 50)
    }
+   upload_detail = (short_code, rows) => {
+      const url = `${network["fracto-prod"]}/tile_details.php?short_code=${short_code}`
+      axios.post(url, rows.join('\n'), {
+         headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Expose-Headers': 'Access-Control-*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+         },
+         mode: 'no-cors',
+         crossdomain: true,
+      })
+   }
 
    upload_points = (short_code, tile_points, dir) => {
       const url = `${network["fracto-prod"]}/new_tile.php?short_code=${short_code}&dir=${dir}`
@@ -146,6 +170,31 @@ export class TabCoverage extends Component {
          },
          mode: 'no-cors',
          crossdomain: true,
+      })
+   }
+
+   detail = (tile, cb) => {
+      const {all_history, tile_index, stats, detail_tiles} = this.state
+      const {ctx, scope, focal_point, canvas_buffer} = this.props
+      if (all_history.length > 100) {
+         all_history.pop();
+      }
+      console.log('detail', tile.short_code)
+      this.setState({context_completed: tile.short_code})
+      this.wait_for_context(tile.short_code, is_all_pattern => {
+         const start = performance.now()
+         const tile_points = FractoTileCache.get_tile(tile.short_code)
+         FractoTileDetail.begin(tile, tile_points, (history, rows) => {
+            const end = performance.now()
+            const history_item = FractoTileRunHistory.format_history_item(
+               tile, "detail", history, tile_index)
+            history_item.elapsed = end - start
+            all_history.push(history_item)
+            this.setState({history, rows})
+            stats.detailed += 1
+            this.upload_detail(tile.short_code, rows)
+            cb(true)
+         })
       })
    }
 
@@ -235,6 +284,16 @@ export class TabCoverage extends Component {
          tile_data={repair_tile_data}/>
    }
 
+   on_render_detail_tile = (tile, width_px) => {
+      const {detail_tile_data} = this.state
+      return 'soon'
+      // return <FractoTileRender
+      //    key={`render-${tile.short_code}`}
+      //    tile={tile}
+      //    width_px={width_px}
+      //    tile_data={detail_tile_data}/>
+   }
+
    render_run_history_summary = () => {
       const {
          enhance_tiles, repair_tiles,
@@ -289,7 +348,7 @@ export class TabCoverage extends Component {
       }
    }
 
-   on_tile_set_changed = (tile_set, level, is_repair) => {
+   on_tile_set_changed = (tile_set, level, is_repair, is_detail = false) => {
       const sorted = tile_set.sort((a, b) => {
          return a.bounds.left === b.bounds.left ?
             (a.bounds.top > b.bounds.top ? -1 : 1) :
@@ -300,6 +359,16 @@ export class TabCoverage extends Component {
             repair_tiles: sorted,
             enhance_tiles: [],
             repair_level: level,
+            detail_tiles: [],
+            tile_index: 0,
+            all_history: [],
+         })
+      } else if (is_detail) {
+         this.setState({
+            enhance_tiles: [],
+            repair_tiles: [],
+            detail_tiles: sorted,
+            detail_level: level,
             tile_index: 0,
             all_history: [],
          })
@@ -307,6 +376,7 @@ export class TabCoverage extends Component {
          this.setState({
             enhance_tiles: sorted,
             repair_tiles: [],
+            detail_tiles: [],
             enhance_level: level,
             tile_index: 0,
             all_history: [],
@@ -324,8 +394,8 @@ export class TabCoverage extends Component {
    on_context_rendered = (canvas_buffer, ctx) => {
       const {tile_index, enhance_tiles, repair_tiles} = this.state
       const is_updated = repair_tiles.length > 0
+      const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
       if (is_updated) {
-         const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
          this.setState({
             context_completed: tile.short_code,
          })
@@ -353,7 +423,8 @@ export class TabCoverage extends Component {
       const {
          tile_index, all_history,
          enhance_tiles, enhance_level,
-         repair_tiles, repair_level
+         repair_tiles, repair_level,
+         detail_tiles, detail_level,
       } = this.state
       const {width_px, scope, focal_point, selected_level} = this.props
       const coverage2 = <FractoTileCoverage
@@ -366,11 +437,6 @@ export class TabCoverage extends Component {
       />
       let automate = []
       if (enhance_tiles.length) {
-         // const sorted = enhance_tiles.sort((a, b) => {
-         //    return a.bounds.left === b.bounds.left ?
-         //       (a.bounds.top > b.bounds.top ? -1 : 1) :
-         //       (a.bounds.left > b.bounds.left ? 1 : -1)
-         // })
          automate = <FractoTileAutomate
             tile_action={this.enhance}
             tile_index={tile_index}
@@ -382,13 +448,20 @@ export class TabCoverage extends Component {
             on_context_rendered={this.on_context_rendered}
             on_automate={this.on_automate}
          />
+      } else if (detail_tiles.length) {
+         automate = <FractoTileAutomate
+            tile_action={this.detail}
+            tile_index={tile_index}
+            level={detail_level}
+            on_tile_select={this.on_select_detail_tile}
+            tile_size_px={CONTEXT_SIZE_PX}
+            on_render_tile={this.on_render_detail_tile}
+            all_tiles={detail_tiles}
+            on_context_rendered={this.on_context_rendered}
+            on_automate={this.on_automate}
+         />
+
       } else if (repair_tiles.length) {
-         // console.log('sorting repair_tiles')
-         // const sorted = repair_tiles.sort((a, b) => {
-         //    return a.bounds.left === b.bounds.left ?
-         //       (a.bounds.top > b.bounds.top ? -1 : 1) :
-         //       (a.bounds.left > b.bounds.left ? 1 : -1)
-         // })
          automate = <FractoTileAutomate
             tile_action={this.enhance}
             tile_index={tile_index}
