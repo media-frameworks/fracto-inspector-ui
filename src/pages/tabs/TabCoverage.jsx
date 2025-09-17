@@ -147,11 +147,15 @@ export class TabCoverage extends Component {
          }
       }, 50)
    }
+
    upload_detail = (short_code, rows) => {
       const url = `${network["fracto-prod"]}/tile_details.php?short_code=${short_code}`
+      console.log('upload_detail', rows)
       axios.post(url, rows.join('\n'), {
          headers: {
+            'Content-Type': 'text/plain',
             'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*',
             'Access-Control-Expose-Headers': 'Access-Control-*',
             'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
          },
@@ -181,9 +185,9 @@ export class TabCoverage extends Component {
       }
       console.log('detail', tile.short_code)
       this.setState({context_completed: tile.short_code})
-      this.wait_for_context(tile.short_code, is_all_pattern => {
+      this.wait_for_context(tile.short_code, async is_all_pattern => {
          const start = performance.now()
-         const tile_points = FractoTileCache.get_tile(tile.short_code)
+         const tile_points = await FractoTileCache.get_tile(tile.short_code)
          FractoTileDetail.begin(tile, tile_points, (history, rows) => {
             const end = performance.now()
             const history_item = FractoTileRunHistory.format_history_item(
@@ -392,12 +396,18 @@ export class TabCoverage extends Component {
    }
 
    on_context_rendered = (canvas_buffer, ctx) => {
-      const {tile_index, enhance_tiles, repair_tiles} = this.state
+      const {tile_index, enhance_tiles, repair_tiles, detail_tiles} = this.state
       const is_updated = repair_tiles.length > 0
-      const tile = is_updated ? repair_tiles[tile_index] : enhance_tiles[tile_index]
-      if (is_updated) {
+      const is_detail = detail_tiles.length > 0
+      const tile = is_updated
+         ? repair_tiles[tile_index]
+         : !is_detail
+            ? enhance_tiles[tile_index]
+            : detail_tiles[tile_index]
+      if (is_updated || is_detail) {
          this.setState({
             context_completed: tile.short_code,
+            is_all_pattern: false,
          })
          return;
       }
