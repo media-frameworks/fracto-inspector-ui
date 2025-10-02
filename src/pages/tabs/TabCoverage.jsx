@@ -365,6 +365,7 @@ export class TabCoverage extends Component {
             repair_level: level,
             detail_tiles: [],
             tile_index: 0,
+            all_interiors: true,
             all_history: [],
          })
       } else if (is_detail) {
@@ -374,6 +375,7 @@ export class TabCoverage extends Component {
             detail_tiles: sorted,
             detail_level: level,
             tile_index: 0,
+            all_interiors: true,
             all_history: [],
          })
       } else {
@@ -384,6 +386,7 @@ export class TabCoverage extends Component {
             enhance_level: level,
             tile_index: 0,
             all_history: [],
+            all_interiors: false,
          })
       }
       this.init_stats()
