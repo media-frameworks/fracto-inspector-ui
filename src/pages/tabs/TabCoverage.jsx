@@ -352,7 +352,7 @@ export class TabCoverage extends Component {
       }
    }
 
-   on_tile_set_changed = (tile_set, level, is_repair, is_detail = false) => {
+   on_tile_set_changed = (tile_set, level, is_repair, is_interior = false) => {
       const sorted = tile_set.sort((a, b) => {
          return a.bounds.left === b.bounds.left ?
             (a.bounds.top > b.bounds.top ? -1 : 1) :
@@ -386,7 +386,7 @@ export class TabCoverage extends Component {
             enhance_level: level,
             tile_index: 0,
             all_history: [],
-            all_interiors: false,
+            all_interiors: is_interior,
          })
       }
       this.init_stats()
