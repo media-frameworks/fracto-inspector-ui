@@ -368,16 +368,6 @@ export class TabCoverage extends Component {
             all_interiors: true,
             all_history: [],
          })
-      } else if (is_detail) {
-         this.setState({
-            enhance_tiles: [],
-            repair_tiles: [],
-            detail_tiles: sorted,
-            detail_level: level,
-            tile_index: 0,
-            all_interiors: true,
-            all_history: [],
-         })
       } else {
          this.setState({
             enhance_tiles: sorted,
@@ -401,7 +391,7 @@ export class TabCoverage extends Component {
    on_context_rendered = (canvas_buffer, ctx) => {
       const {tile_index, enhance_tiles, repair_tiles, detail_tiles} = this.state
       const is_updated = repair_tiles.length > 0
-      const is_detail = detail_tiles.length > 0
+      const is_detail = false // detail_tiles.length > 0
       const tile = is_updated
          ? repair_tiles[tile_index]
          : !is_detail
