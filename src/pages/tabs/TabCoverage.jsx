@@ -83,6 +83,7 @@ export class TabCoverage extends Component {
       context_completed: '',
       stats: STATS_INIT,
       all_interiors: false,
+      fatal_error: false,
    }
 
    on_select_row = (new_selected_row) => {
@@ -166,15 +167,19 @@ export class TabCoverage extends Component {
 
    upload_points = (short_code, tile_points, dir) => {
       const url = `${network["fracto-prod"]}/new_tile.php?short_code=${short_code}&dir=${dir}`
-      axios.post(url, tile_points, {
-         headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Expose-Headers': 'Access-Control-*',
-            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-         },
-         mode: 'no-cors',
-         crossdomain: true,
-      })
+      try {
+         axios.post(url, tile_points, {
+            headers: {
+               'Access-Control-Allow-Origin': '*',
+               'Access-Control-Expose-Headers': 'Access-Control-*',
+               'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+            },
+            mode: 'no-cors',
+            crossdomain: true,
+         })
+      } catch (e) {
+         this.setState({fatal_error: true})
+      }
    }
 
    detail = (tile, cb) => {
@@ -203,8 +208,12 @@ export class TabCoverage extends Component {
    }
 
    enhance = (tile, cb) => {
-      const {all_history, tile_index, stats, repair_tiles, all_interiors} = this.state
+      const {all_history, tile_index, stats, repair_tiles, all_interiors, fatal_error} = this.state
       const {ctx, scope, focal_point, canvas_buffer} = this.props
+      if (fatal_error) {
+         cb(false);
+         return;
+      }
       if (all_history.length > 100) {
          all_history.pop();
       }
@@ -367,6 +376,7 @@ export class TabCoverage extends Component {
             tile_index: 0,
             all_interiors: true,
             all_history: [],
+            fatal_error: false,
          })
       } else {
          this.setState({
@@ -377,6 +387,7 @@ export class TabCoverage extends Component {
             tile_index: 0,
             all_history: [],
             all_interiors: is_interior,
+            fatal_error: false,
          })
       }
       this.init_stats()
